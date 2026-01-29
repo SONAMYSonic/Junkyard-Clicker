@@ -25,10 +25,4 @@ namespace JunkyardClicker.Core
         Hood,
         Trunk
     }
-
-    public enum UpgradeType
-    {
-        Tool,
-        Worker
-    }
 }

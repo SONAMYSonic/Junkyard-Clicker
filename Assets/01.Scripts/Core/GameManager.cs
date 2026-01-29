@@ -5,18 +5,10 @@ namespace JunkyardClicker.Core
     using Car;
     using Input;
     using Resource;
-    using Upgrade;
 
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
-
-        [Header("Managers")]
-        [SerializeField]
-        private ResourceManager _resourceManager;
-
-        [SerializeField]
-        private UpgradeManager _upgradeManager;
 
         [Header("Handlers")]
         [SerializeField]
@@ -28,8 +20,6 @@ namespace JunkyardClicker.Core
         [SerializeField]
         private AutoDamageHandler _autoDamageHandler;
 
-        public ResourceManager Resource => _resourceManager;
-        public UpgradeManager Upgrade => _upgradeManager;
         public CarSpawner Spawner => _carSpawner;
 
         private void Awake()
@@ -58,14 +48,22 @@ namespace JunkyardClicker.Core
 
         public int GetClickDamage()
         {
-            int toolLevel = _upgradeManager != null ? _upgradeManager.GetLevel(UpgradeType.Tool) : 0;
-            return DamageCalculator.CalculateClickDamage(toolLevel);
+            if (NewUpgradeManager.Instance == null)
+            {
+                return 1;
+            }
+
+            return NewUpgradeManager.Instance.ToolDamage;
         }
 
         public int GetAutoDamagePerSecond()
         {
-            int workerLevel = _upgradeManager != null ? _upgradeManager.GetLevel(UpgradeType.Worker) : 0;
-            return DamageCalculator.CalculateAutoDamagePerSecond(workerLevel);
+            if (NewUpgradeManager.Instance == null)
+            {
+                return 0;
+            }
+
+            return NewUpgradeManager.Instance.WorkerDps;
         }
     }
 }

@@ -10,7 +10,6 @@ namespace JunkyardClicker.Core
         public static event Action<int> OnCarDestroyed;
         public static event Action<int> OnMoneyChanged;
         public static event Action<PartType, int> OnPartCollected;
-        public static event Action<UpgradeType, int> OnUpgraded;
         public static event Action OnCarSpawned;
 
         public static void RaiseDamageDealt(int damage)
@@ -43,11 +42,6 @@ namespace JunkyardClicker.Core
             OnPartCollected?.Invoke(partType, amount);
         }
 
-        public static void RaiseUpgraded(UpgradeType upgradeType, int newLevel)
-        {
-            OnUpgraded?.Invoke(upgradeType, newLevel);
-        }
-
         public static void RaiseCarSpawned()
         {
             OnCarSpawned?.Invoke();
@@ -61,7 +55,6 @@ namespace JunkyardClicker.Core
             OnCarDestroyed = null;
             OnMoneyChanged = null;
             OnPartCollected = null;
-            OnUpgraded = null;
             OnCarSpawned = null;
         }
     }

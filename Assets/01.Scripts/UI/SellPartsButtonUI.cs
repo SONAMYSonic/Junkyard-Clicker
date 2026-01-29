@@ -4,57 +4,87 @@ using TMPro;
 
 namespace JunkyardClicker.UI
 {
-    using Resource;
-
     public class SellPartsButtonUI : MonoBehaviour
     {
         [SerializeField]
-        private Button _sellButton;
+        private Button _button;
 
         [SerializeField]
-        private TextMeshProUGUI _buttonText;
-
-        [SerializeField]
-        private ResourceManager _resourceManager;
+        private TextMeshProUGUI _valueText;
 
         private void Awake()
         {
-            if (_sellButton != null)
+            if (_button != null)
             {
-                _sellButton.onClick.AddListener(OnSellButtonClicked);
+                _button.onClick.AddListener(OnButtonClicked);
             }
         }
 
-        private void OnSellButtonClicked()
+        private void OnEnable()
         {
-            if (_resourceManager == null)
+            CurrencyManager.OnDataChanged += UpdateUI;
+            UpdateUI();
+        }
+
+        private void OnDisable()
+        {
+            CurrencyManager.OnDataChanged -= UpdateUI;
+        }
+
+        private void Start()
+        {
+            UpdateUI();
+        }
+
+        private void OnButtonClicked()
+        {
+            if (CurrencyManager.Instance != null)
+            {
+                int soldValue = CurrencyManager.Instance.SellAllParts();
+
+                if (soldValue > 0)
+                {
+                    Debug.Log($"부품 판매 완료: {soldValue}원");
+                }
+            }
+        }
+
+        private void UpdateUI()
+        {
+            if (CurrencyManager.Instance == null)
             {
                 return;
             }
 
-            int earnedMoney = _resourceManager.SellAllParts();
+            int totalValue = CalculateTotalValue();
 
-            if (earnedMoney > 0 && _buttonText != null)
+            if (_valueText != null)
             {
-                StartCoroutine(ShowSoldFeedback(earnedMoney));
+                Currency valueCurrency = totalValue;
+                _valueText.text = $"판매 (${valueCurrency})";
+            }
+
+            if (_button != null)
+            {
+                _button.interactable = totalValue > 0;
             }
         }
 
-        private System.Collections.IEnumerator ShowSoldFeedback(int amount)
+        private int CalculateTotalValue()
         {
-            string originalText = _buttonText.text;
-            _buttonText.text = $"+${amount}!";
-
-            yield return new WaitForSeconds(1f);
-
-            _buttonText.text = originalText;
+            int total = 0;
+            total += (int)(CurrencyManager.Instance.Scrap.Value * 5);
+            total += (int)(CurrencyManager.Instance.Glass.Value * 3);
+            total += (int)(CurrencyManager.Instance.Plate.Value * 8);
+            total += (int)(CurrencyManager.Instance.Rubber.Value * 4);
+            return total;
         }
 
         private void OnDestroy()
         {
-            if (_sellButton != null)
+            if (_button != null)
             {
-                _sellButton.onClick.RemoveListener(OnSellButtonClicked);
+                _button.onClick.RemoveListener(OnButtonClicked);
             }
         }
     }

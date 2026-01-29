@@ -4,13 +4,9 @@ namespace JunkyardClicker.Resource
 {
     using Car;
     using Core;
-    using Upgrade;
 
     public class AutoDamageHandler : MonoBehaviour
     {
-        [SerializeField]
-        private UpgradeManager _upgradeManager;
-
         [SerializeField]
         private float _tickInterval = 1f;
 
@@ -34,9 +30,14 @@ namespace JunkyardClicker.Resource
                 return;
             }
 
-            int workerLevel = GetWorkerLevel();
-            
-            if (workerLevel <= 0)
+            if (NewUpgradeManager.Instance == null)
+            {
+                return;
+            }
+
+            int workerDps = NewUpgradeManager.Instance.WorkerDps;
+
+            if (workerDps <= 0)
             {
                 return;
             }
@@ -45,25 +46,13 @@ namespace JunkyardClicker.Resource
 
             if (_tickTimer >= _tickInterval)
             {
-                ApplyAutoDamage(workerLevel);
+                ApplyAutoDamage(workerDps);
                 _tickTimer = 0f;
             }
         }
 
-        private int GetWorkerLevel()
+        private void ApplyAutoDamage(int damage)
         {
-            if (_upgradeManager == null)
-            {
-                return 0;
-            }
-
-            return _upgradeManager.GetLevel(UpgradeType.Worker);
-        }
-
-        private void ApplyAutoDamage(int workerLevel)
-        {
-            int damage = DamageCalculator.CalculateAutoDamagePerSecond(workerLevel);
-            
             if (damage > 0)
             {
                 _currentCar.TakeDamage(damage);

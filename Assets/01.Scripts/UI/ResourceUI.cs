@@ -3,9 +3,6 @@ using TMPro;
 
 namespace JunkyardClicker.UI
 {
-    using Core;
-    using Resource;
-
     public class ResourceUI : MonoBehaviour
     {
         [SerializeField]
@@ -23,17 +20,14 @@ namespace JunkyardClicker.UI
         [SerializeField]
         private TextMeshProUGUI _rubberText;
 
-        [SerializeField]
-        private ResourceManager _resourceManager;
-
         private void OnEnable()
         {
-            SubscribeToEvents();
+            CurrencyManager.OnDataChanged += UpdateAllUI;
         }
 
         private void OnDisable()
         {
-            UnsubscribeFromEvents();
+            CurrencyManager.OnDataChanged -= UpdateAllUI;
         }
 
         private void Start()
@@ -41,81 +35,37 @@ namespace JunkyardClicker.UI
             UpdateAllUI();
         }
 
-        private void SubscribeToEvents()
-        {
-            GameEvents.OnMoneyChanged += UpdateMoneyUI;
-            GameEvents.OnPartCollected += HandlePartCollected;
-
-            if (_resourceManager != null)
-            {
-                _resourceManager.OnPartUpdated += UpdatePartUI;
-            }
-        }
-
-        private void UnsubscribeFromEvents()
-        {
-            GameEvents.OnMoneyChanged -= UpdateMoneyUI;
-            GameEvents.OnPartCollected -= HandlePartCollected;
-
-            if (_resourceManager != null)
-            {
-                _resourceManager.OnPartUpdated -= UpdatePartUI;
-            }
-        }
-
         private void UpdateAllUI()
         {
-            if (_resourceManager == null)
+            if (CurrencyManager.Instance == null)
             {
                 return;
             }
 
-            UpdateMoneyUI(_resourceManager.Money);
-            UpdatePartUI(PartType.Scrap, _resourceManager.GetPartCount(PartType.Scrap));
-            UpdatePartUI(PartType.Glass, _resourceManager.GetPartCount(PartType.Glass));
-            UpdatePartUI(PartType.Plate, _resourceManager.GetPartCount(PartType.Plate));
-            UpdatePartUI(PartType.Rubber, _resourceManager.GetPartCount(PartType.Rubber));
-        }
-
-        private void UpdateMoneyUI(int money)
-        {
             if (_moneyText != null)
             {
-                _moneyText.text = money.ToFormattedString();
-            }
-        }
-
-        private void UpdatePartUI(PartType partType, int count)
-        {
-            TextMeshProUGUI targetText = GetTextForPartType(partType);
-
-            if (targetText != null)
-            {
-                targetText.text = count.ToFormattedString();
-            }
-        }
-
-        private void HandlePartCollected(PartType partType, int amount)
-        {
-            if (_resourceManager == null)
-            {
-                return;
+                _moneyText.text = CurrencyManager.Instance.Money.ToString();
             }
 
-            int totalCount = _resourceManager.GetPartCount(partType);
-            UpdatePartUI(partType, totalCount);
-        }
-
-        private TextMeshProUGUI GetTextForPartType(PartType partType)
-        {
-            return partType switch
+            if (_scrapText != null)
             {
-                PartType.Scrap => _scrapText,
-                PartType.Glass => _glassText,
-                PartType.Plate => _plateText,
-                PartType.Rubber => _rubberText,
-                _ => null
-            };
+                _scrapText.text = CurrencyManager.Instance.Scrap.ToString();
+            }
+
+            if (_glassText != null)
+            {
+                _glassText.text = CurrencyManager.Instance.Glass.ToString();
+            }
+
+            if (_plateText != null)
+            {
+                _plateText.text = CurrencyManager.Instance.Plate.ToString();
+            }
+
+            if (_rubberText != null)
+            {
+                _rubberText.text = CurrencyManager.Instance.Rubber.ToString();
+            }
         }
     }
 }

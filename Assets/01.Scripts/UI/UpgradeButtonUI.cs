@@ -1,16 +1,14 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using JunkyardClicker.Core;
 
 namespace JunkyardClicker.UI
 {
-    using Core;
-    using Upgrade;
-
     public class UpgradeButtonUI : MonoBehaviour
     {
         [SerializeField]
-        private UpgradeType _upgradeType;
+        private EUpgradeType _upgradeType;
 
         [SerializeField]
         private Button _button;
@@ -27,12 +25,6 @@ namespace JunkyardClicker.UI
         [SerializeField]
         private TextMeshProUGUI _effectText;
 
-        [SerializeField]
-        private Image _icon;
-
-        [SerializeField]
-        private UpgradeManager _upgradeManager;
-
         private void Awake()
         {
             if (_button != null)
@@ -43,80 +35,71 @@ namespace JunkyardClicker.UI
 
         private void OnEnable()
         {
-            GameEvents.OnMoneyChanged += HandleMoneyChanged;
-            GameEvents.OnUpgraded += HandleUpgraded;
+            CurrencyManager.OnDataChanged += UpdateButtonInteractable;
+            NewUpgradeManager.OnUpgraded += HandleUpgraded;
             UpdateUI();
         }
 
         private void OnDisable()
         {
-            GameEvents.OnMoneyChanged -= HandleMoneyChanged;
-            GameEvents.OnUpgraded -= HandleUpgraded;
+            CurrencyManager.OnDataChanged -= UpdateButtonInteractable;
+            NewUpgradeManager.OnUpgraded -= HandleUpgraded;
+        }
+
+        private void Start()
+        {
+            UpdateUI();
         }
 
         private void OnButtonClicked()
         {
-            if (_upgradeManager != null)
+            if (NewUpgradeManager.Instance != null)
             {
-                _upgradeManager.TryUpgrade(_upgradeType);
+                NewUpgradeManager.Instance.TryUpgrade(_upgradeType);
             }
         }
 
-        private void HandleMoneyChanged(int money)
+        private void HandleUpgraded()
         {
-            UpdateButtonInteractable();
-        }
-
-        private void HandleUpgraded(UpgradeType type, int level)
-        {
-            if (type == _upgradeType)
-            {
-                UpdateUI();
-            }
+            UpdateUI();
         }
 
         private void UpdateUI()
         {
-            if (_upgradeManager == null)
+            if (NewUpgradeManager.Instance == null)
             {
                 return;
             }
 
-            UpgradeData data = _upgradeManager.GetUpgradeData(_upgradeType);
-            
-            if (data == null)
-            {
-                return;
-            }
+            int currentLevel = NewUpgradeManager.Instance.GetLevel(_upgradeType);
+            bool isMaxLevel = NewUpgradeManager.Instance.IsMaxLevel(_upgradeType);
 
-            int currentLevel = _upgradeManager.GetLevel(_upgradeType);
-            bool isMaxLevel = _upgradeManager.IsMaxLevel(_upgradeType);
-
-            UpdateNameText(data);
+            UpdateNameText();
             UpdateLevelText(currentLevel, isMaxLevel);
             UpdateCostText(isMaxLevel);
-            UpdateEffectText(data, currentLevel);
-            UpdateIcon(data, currentLevel);
+            UpdateEffectText(currentLevel);
             UpdateButtonInteractable();
         }
 
-        private void UpdateNameText(UpgradeData data)
+        private void UpdateNameText()
         {
             if (_nameText != null)
             {
-                _nameText.text = data.DisplayName;
+                _nameText.text = _upgradeType switch
+                {
+                    EUpgradeType.Tool => "도구",
+                    EUpgradeType.Worker => "직원",
+                    _ => "???"
+                };
             }
         }
 
         private void UpdateLevelText(int level, bool isMaxLevel)
         {
-            if (_levelText == null)
+            if (_levelText != null)
             {
-                return;
+                _levelText.text = isMaxLevel ? $"Lv.{level} (MAX)" : $"Lv.{level}";
             }
-
-            string levelName = _upgradeManager.GetCurrentLevelName(_upgradeType);
-            _levelText.text = isMaxLevel ? $"{levelName} (MAX)" : levelName;
         }
 
         private void UpdateCostText(bool isMaxLevel)
@@ -132,47 +115,45 @@ namespace JunkyardClicker.UI
                 return;
             }
 
-            int cost = _upgradeManager.GetUpgradeCost(_upgradeType);
-            _costText.text = $"${cost}";
+            int cost = NewUpgradeManager.Instance.GetUpgradeCost(_upgradeType);
+            Currency costCurrency = cost;
+            _costText.text = $"${costCurrency}";
         }
 
-        private void UpdateEffectText(UpgradeData data, int currentLevel)
+        private void UpdateEffectText(int currentLevel)
         {
             if (_effectText == null)
             {
                 return;
             }
 
-            int currentValue = data.GetValue(currentLevel);
             string effectDescription = _upgradeType switch
             {
-                UpgradeType.Tool => $"클릭 데미지: {currentValue}",
-                UpgradeType.Worker => $"초당 데미지: {currentValue}",
+                EUpgradeType.Tool => $"클릭 데미지: {NewUpgradeManager.Instance.GetToolDamage(currentLevel)}",
+                EUpgradeType.Worker => $"초당 데미지: {NewUpgradeManager.Instance.GetWorkerDps(currentLevel)}",
                 _ => ""
             };
 
             _effectText.text = effectDescription;
         }
 
-        private void UpdateIcon(UpgradeData data, int level)
-        {
-            if (_icon != null)
-            {
-                Sprite iconSprite = data.GetIcon(level);
-                
-                if (iconSprite != null)
-                {
-                    _icon.sprite = iconSprite;
-                }
-            }
-        }
-
         private void UpdateButtonInteractable()
         {
-            if (_button != null && _upgradeManager != null)
+            if (_button == null || NewUpgradeManager.Instance == null || CurrencyManager.Instance == null)
             {
-                _button.interactable = _upgradeManager.CanUpgrade(_upgradeType);
+                return;
             }
+
+            bool isMaxLevel = NewUpgradeManager.Instance.IsMaxLevel(_upgradeType);
+
+            if (isMaxLevel)
+            {
+                _button.interactable = false;
+                return;
+            }
+
+            int cost = NewUpgradeManager.Instance.GetUpgradeCost(_upgradeType);
+            _button.interactable = CurrencyManager.Instance.CanAfford(ECurrencyType.Money, cost);
         }
 
         private void OnDestroy()

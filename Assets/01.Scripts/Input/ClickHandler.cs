@@ -5,16 +5,11 @@ namespace JunkyardClicker.Input
 {
     using Car;
     using Core;
-    using Resource;
-    using Upgrade;
 
     public class ClickHandler : MonoBehaviour
     {
         [SerializeField]
         private Camera _mainCamera;
-
-        [SerializeField]
-        private UpgradeManager _upgradeManager;
 
         private Car _currentCar;
 
@@ -85,8 +80,12 @@ namespace JunkyardClicker.Input
 
         private int CalculateDamage()
         {
-            int toolLevel = _upgradeManager != null ? _upgradeManager.GetLevel(UpgradeType.Tool) : 0;
-            return DamageCalculator.CalculateClickDamage(toolLevel);
+            if (NewUpgradeManager.Instance == null)
+            {
+                return 1;
+            }
+
+            return NewUpgradeManager.Instance.ToolDamage;
         }
 
         public void SetCar(Car car)
