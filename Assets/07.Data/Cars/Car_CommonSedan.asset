@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da02dfb1d5c195c4888f605ebad94c10, type: 3}
+  m_Name: Car_CommonSedan
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Core.CarData
+  _carName: "\uC77C\uBC18 \uC138\uB2E8"
+  _grade: 0
+  _maxHp: 100
+  _baseReward: 500
+  _baseSprite: {fileID: 0}
+  _partDataList: []

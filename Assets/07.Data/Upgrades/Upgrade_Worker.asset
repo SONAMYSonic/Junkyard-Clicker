@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a2dca800738d68742ba86aaf4f607e68, type: 3}
+  m_Name: Upgrade_Worker
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Core.UpgradeData
+  _type: 1
+  _displayName: "\uC9C1\uC6D0"
+  _levelNames:
+  - "\uC5C6\uC74C"
+  - "\uCD08\uBCF4"
+  - "\uC911\uAE09"
+  - "\uACE0\uAE09"
+  - "\uC804\uBB38\uAC00"
+  - "\uB9C8\uC2A4\uD130"
+  _costs: 00000000c8000000e803000088130000a8610000a0860100
+  _values: 000000000100000003000000080000001400000032000000
+  _icons: []
