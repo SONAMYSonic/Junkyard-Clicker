@@ -15,12 +15,12 @@ namespace JunkyardClicker.Resource
 
         private void OnEnable()
         {
-            GameEvents.OnCarSpawned += RefreshCarReference;
+            GameEvents.OnCarSpawned += HandleCarSpawned;
         }
 
         private void OnDisable()
         {
-            GameEvents.OnCarSpawned -= RefreshCarReference;
+            GameEvents.OnCarSpawned -= HandleCarSpawned;
         }
 
         private void Update()
@@ -59,13 +59,8 @@ namespace JunkyardClicker.Resource
             }
         }
 
-        private void RefreshCarReference()
-        {
-            _currentCar = FindAnyObjectByType<Car>();
-            _tickTimer = 0f;
-        }
-
-        public void SetCar(Car car)
+        // 이벤트에서 Car 참조를 직접 받음
+        private void HandleCarSpawned(Car car)
         {
             _currentCar = car;
             _tickTimer = 0f;

@@ -13,7 +13,7 @@ GameObject:
   m_Layer: 0
   m_Name: Car
   m_TagString: Untagged
-  m_Icon: {fileID: 0}
+  m_Icon: {fileID: 419385456094870383, guid: 0000000000000000d000000000000000, type: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
@@ -46,8 +46,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30fc42b21c000a94383f81e6fa6394d5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.Car
-  _baseRenderer: {fileID: 0}
-  _parts: []
+  _baseRenderer: {fileID: 219757523597255529}
+  _parts:
+  - {fileID: 8231728285337210716}
+  - {fileID: 6283384889936805138}
+  - {fileID: 2074611283571781805}
+  - {fileID: 8998109440083310351}
+  - {fileID: 291293021479093811}
+  - {fileID: 3137136290725526474}
 --- !u!1 &1480267312297042180
 GameObject:
   m_ObjectHideFlags: 0
@@ -129,15 +135,15 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: -2135585597343286014, guid: 5aa8b770bc43046bc8d993d0d5b7f4a5, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 1, y: 1}
+  m_Size: {x: 0.8828125, y: 1}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
-  m_WasSpriteAssigned: 0
+  m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
 --- !u!1 &5397292873317680172
 GameObject:
@@ -186,7 +192,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 0}
+  _spriteRenderer: {fileID: 204816837262906655}
 --- !u!212 &204816837262906655
 SpriteRenderer:
   serializedVersion: 2
@@ -290,7 +296,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.0001, y: 0.0001}
+  m_Size: {x: 0.8, y: 1}
   m_EdgeRadius: 0
 --- !u!114 &2366487445827563811
 MonoBehaviour:
@@ -391,7 +397,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 0}
+  _spriteRenderer: {fileID: 6247499704684329814}
 --- !u!212 &6247499704684329814
 SpriteRenderer:
   serializedVersion: 2
@@ -495,7 +501,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.0001, y: 0.0001}
+  m_Size: {x: 2, y: 1}
   m_EdgeRadius: 0
 --- !u!114 &5914423537756412480
 MonoBehaviour:
@@ -559,7 +565,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 0}
+  _spriteRenderer: {fileID: 4259795893435319487}
 --- !u!212 &4259795893435319487
 SpriteRenderer:
   serializedVersion: 2
@@ -663,7 +669,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.0001, y: 0.0001}
+  m_Size: {x: 1, y: 0.8}
   m_EdgeRadius: 0
 --- !u!114 &4100140125564690599
 MonoBehaviour:
@@ -727,7 +733,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 0}
+  _spriteRenderer: {fileID: 3618366692862489435}
 --- !u!212 &3618366692862489435
 SpriteRenderer:
   serializedVersion: 2
@@ -831,7 +837,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.0001, y: 0.0001}
+  m_Size: {x: 1.2, y: 0.6}
   m_EdgeRadius: 0
 --- !u!114 &165775326399102590
 MonoBehaviour:
@@ -895,7 +901,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 0}
+  _spriteRenderer: {fileID: 879563278173192925}
 --- !u!212 &879563278173192925
 SpriteRenderer:
   serializedVersion: 2
@@ -999,7 +1005,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.0001, y: 0.0001}
+  m_Size: {x: 1.5, y: 0.8}
   m_EdgeRadius: 0
 --- !u!114 &1814463859429971862
 MonoBehaviour:
@@ -1063,7 +1069,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 0}
+  _spriteRenderer: {fileID: 4702623508000114870}
 --- !u!212 &4702623508000114870
 SpriteRenderer:
   serializedVersion: 2
@@ -1167,7 +1173,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.0001, y: 0.0001}
+  m_Size: {x: 0.8, y: 1}
   m_EdgeRadius: 0
 --- !u!114 &5867643440964228668
 MonoBehaviour:

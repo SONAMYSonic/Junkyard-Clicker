@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using JunkyardClicker.Core;
 
 public class CurrencyManager : MonoBehaviour
 {
@@ -17,6 +18,19 @@ public class CurrencyManager : MonoBehaviour
         _repository = new LocalCurrencyRepository();
     }
 
+    private void OnEnable()
+    {
+        // 파츠 수집 이벤트 구독
+        GameEvents.OnPartCollected += HandlePartCollected;
+        GameEvents.OnCarDestroyed += HandleCarDestroyed;
+    }
+
+    private void OnDisable()
+    {
+        GameEvents.OnPartCollected -= HandlePartCollected;
+        GameEvents.OnCarDestroyed -= HandleCarDestroyed;
+    }
+
     private void Start()
     {
         LoadData();
@@ -30,6 +44,31 @@ public class CurrencyManager : MonoBehaviour
         {
             _currencies[i] = currencyValues[i];
         }
+    }
+
+    private void HandlePartCollected(PartType partType, int amount)
+    {
+        // PartType을 ECurrencyType으로 변환하여 자원 추가
+        ECurrencyType currencyType = ConvertPartTypeToCurrency(partType);
+        Add(currencyType, amount);
+    }
+
+    private void HandleCarDestroyed(int reward)
+    {
+        // 차량 파괴 보상 (돈)
+        Add(ECurrencyType.Money, reward);
+    }
+
+    private ECurrencyType ConvertPartTypeToCurrency(PartType partType)
+    {
+        return partType switch
+        {
+            PartType.Scrap => ECurrencyType.Scrap,
+            PartType.Glass => ECurrencyType.Glass,
+            PartType.Plate => ECurrencyType.Plate,
+            PartType.Rubber => ECurrencyType.Rubber,
+            _ => ECurrencyType.Scrap
+        };
     }
 
     public Currency Get(ECurrencyType currencyType)

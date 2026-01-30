@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace JunkyardClicker.Car
@@ -27,6 +26,7 @@ namespace JunkyardClicker.Car
         private void OnEnable()
         {
             GameEvents.OnCarDestroyed += HandleCarDestroyed;
+            Debug.Log("[CarSpawner] OnCarDestroyed 이벤트 구독 완료");
         }
 
         private void OnDisable()
@@ -54,10 +54,10 @@ namespace JunkyardClicker.Car
         public void SpawnRandomCar()
         {
             CarData selectedData = SelectRandomCarData();
-            
+
             if (selectedData == null)
             {
-                Debug.LogError("CarSpawner: 선택할 수 있는 CarData가 없습니다.");
+                Debug.LogError("[CarSpawner] 선택할 수 있는 CarData가 없습니다. Car Data List를 확인하세요.");
                 return;
             }
 
@@ -71,10 +71,18 @@ namespace JunkyardClicker.Car
                 Destroy(_currentCar.gameObject);
             }
 
+            if (_carPrefab == null)
+            {
+                Debug.LogError("[CarSpawner] Car Prefab이 연결되지 않았습니다.");
+                return;
+            }
+
             Vector3 spawnPosition = _spawnPoint != null ? _spawnPoint.position : Vector3.zero;
-            
+
             _currentCar = Instantiate(_carPrefab, spawnPosition, Quaternion.identity);
             _currentCar.Initialize(carData);
+            
+            Debug.Log($"[CarSpawner] 새 차량 스폰: {carData.CarName}");
         }
 
         private CarData SelectRandomCarData()
@@ -107,6 +115,7 @@ namespace JunkyardClicker.Car
 
         private void HandleCarDestroyed(int reward)
         {
+            Debug.Log($"[CarSpawner] 차량 파괴됨! 보상: {reward}, 1초 후 새 차량 스폰 예정");
             Invoke(nameof(SpawnRandomCar), 1f);
         }
 

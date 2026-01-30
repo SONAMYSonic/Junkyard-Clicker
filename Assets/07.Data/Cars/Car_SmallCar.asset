@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: da02dfb1d5c195c4888f605ebad94c10, type: 3}
+  m_Name: Car_SmallCar
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Core.CarData
+  _carName: "\uACBD\uCC28"
+  _grade: 0
+  _maxHp: 70
+  _baseReward: 300
+  _baseSprite: {fileID: 0}
+  _partDataList:
+  - {fileID: 11400000, guid: 7f8a0a55c7cd84c449f34ac49bd2625b, type: 2}
+  - {fileID: 11400000, guid: 7e8415b5fb62e5f4f965d3086a1069fb, type: 2}
+  - {fileID: 11400000, guid: 33d9bf7443dbe1044b16184a8b159540, type: 2}
+  - {fileID: 11400000, guid: d3c5ed6f2fca97f4ba9701769aef259d, type: 2}
+  - {fileID: 11400000, guid: ba68fff492f7828498904726eb2059ff, type: 2}
+  - {fileID: 11400000, guid: b6392db2288367243ae1bca1abf3fff9, type: 2}

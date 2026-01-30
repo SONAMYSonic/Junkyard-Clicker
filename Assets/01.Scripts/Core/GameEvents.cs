@@ -2,15 +2,24 @@ using System;
 
 namespace JunkyardClicker.Core
 {
+    using Car;
+
     public static class GameEvents
     {
+        // Car 참조를 직접 전달하여 타이밍 문제 해결
+        public static event Action<Car> OnCarSpawned;
+
         public static event Action<int> OnDamageDealt;
         public static event Action<CarPartType, int> OnPartDamaged;
         public static event Action<CarPartType> OnPartDestroyed;
         public static event Action<int> OnCarDestroyed;
         public static event Action<int> OnMoneyChanged;
         public static event Action<PartType, int> OnPartCollected;
-        public static event Action OnCarSpawned;
+
+        public static void RaiseCarSpawned(Car car)
+        {
+            OnCarSpawned?.Invoke(car);
+        }
 
         public static void RaiseDamageDealt(int damage)
         {
@@ -42,20 +51,15 @@ namespace JunkyardClicker.Core
             OnPartCollected?.Invoke(partType, amount);
         }
 
-        public static void RaiseCarSpawned()
-        {
-            OnCarSpawned?.Invoke();
-        }
-
         public static void ClearAllEvents()
         {
+            OnCarSpawned = null;
             OnDamageDealt = null;
             OnPartDamaged = null;
             OnPartDestroyed = null;
             OnCarDestroyed = null;
             OnMoneyChanged = null;
             OnPartCollected = null;
-            OnCarSpawned = null;
         }
     }
 }

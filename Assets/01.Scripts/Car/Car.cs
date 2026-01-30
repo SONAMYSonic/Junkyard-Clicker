@@ -35,7 +35,9 @@ namespace JunkyardClicker.Car
             }
 
             InitializeParts();
-            GameEvents.RaiseCarSpawned();
+
+            // Car 참조를 직접 전달하여 타이밍 문제 해결
+            GameEvents.RaiseCarSpawned(this);
         }
 
         private void InitializeParts()
@@ -44,7 +46,7 @@ namespace JunkyardClicker.Car
             {
                 CarPart part = _parts[i];
                 CarPartData partData = _data.PartDataList[i];
-                
+
                 part.Initialize(partData, _data.MaxHp);
                 part.OnDestroyed += HandlePartDestroyed;
             }

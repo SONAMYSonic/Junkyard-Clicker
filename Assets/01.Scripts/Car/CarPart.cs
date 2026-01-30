@@ -15,7 +15,8 @@ namespace JunkyardClicker.Car
         private int _currentHp;
         private bool _isDestroyed;
 
-        public CarPartType PartType => _data.PartType;
+        public bool IsInitialized => _data != null;
+        public CarPartType PartType => _data != null ? _data.PartType : CarPartType.Body;
         public bool IsDestroyed => _isDestroyed;
         public float HpRatio => _maxHp > 0 ? (float)_currentHp / _maxHp : 0f;
 
@@ -38,6 +39,12 @@ namespace JunkyardClicker.Car
                 return 0;
             }
 
+            if (_data == null)
+            {
+                Debug.LogWarning($"CarPart '{gameObject.name}'이 초기화되지 않았습니다. CarData의 Part Data List를 확인하세요.");
+                return 0;
+            }
+
             int actualDamage = Mathf.Min(damage, _currentHp);
             _currentHp -= actualDamage;
 
@@ -46,22 +53,32 @@ namespace JunkyardClicker.Car
 
             if (_currentHp <= 0)
             {
-                Destroy();
+                DestroyPart();
             }
 
             return actualDamage;
         }
 
-        private void Destroy()
+        private void DestroyPart()
         {
             _isDestroyed = true;
             DropParts();
-            GameEvents.RaisePartDestroyed(_data.PartType);
+
+            if (_data != null)
+            {
+                GameEvents.RaisePartDestroyed(_data.PartType);
+            }
+
             OnDestroyed?.Invoke(this);
         }
 
         private void DropParts()
         {
+            if (_data == null || _data.Drops == null)
+            {
+                return;
+            }
+
             foreach (PartDropInfo dropInfo in _data.Drops)
             {
                 if (dropInfo.RollDrop())
@@ -95,12 +112,12 @@ namespace JunkyardClicker.Car
         {
             _currentHp = _maxHp;
             _isDestroyed = false;
-            
+
             if (_spriteRenderer != null)
             {
                 _spriteRenderer.color = Color.white;
             }
-            
+
             UpdateVisual();
         }
     }

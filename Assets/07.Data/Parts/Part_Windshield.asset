@@ -14,7 +14,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Core.CarPartData
   _partType: 1
   _hpRatio: 0.15
-  _drops: []
+  _drops:
+  - _partType: 1
+    _minAmount: 1
+    _maxAmount: 6
+    _dropChance: 0.5
   _normalSprite: {fileID: 0}
   _damagedSprite: {fileID: 0}
   _destroyedSprite: {fileID: 0}

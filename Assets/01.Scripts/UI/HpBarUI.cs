@@ -35,15 +35,31 @@ namespace JunkyardClicker.UI
             GameEvents.OnDamageDealt -= HandleDamageDealt;
         }
 
-        private void HandleCarSpawned()
+        private void Start()
         {
-            _currentCar = FindAnyObjectByType<Car>();
-            UpdateCarInfo();
-            UpdateHpBar();
+            // 이미 스폰된 차량이 있으면 UI 업데이트
+            var existingCar = FindAnyObjectByType<Car>();
+            if (existingCar != null)
+            {
+                SetCar(existingCar);
+            }
+        }
+
+        private void HandleCarSpawned(Car car)
+        {
+            // 이벤트에서 Car 참조를 직접 받아서 타이밍 문제 해결
+            SetCar(car);
         }
 
         private void HandleDamageDealt(int damage)
         {
+            UpdateHpBar();
+        }
+
+        private void SetCar(Car car)
+        {
+            _currentCar = car;
+            UpdateCarInfo();
             UpdateHpBar();
         }
 
