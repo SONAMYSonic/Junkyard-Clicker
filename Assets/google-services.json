@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "503254934771",
+    "project_id": "junkyard-clicker-e87e2",
+    "storage_bucket": "junkyard-clicker-e87e2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:503254934771:android:f9bbfbc322622c5e460386",
+        "android_client_info": {
+          "package_name": "com.ZeroWard.Junkyard_Clicker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHl5IKjyd8eYEjMVb3PELPGWk1UNOqsLo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
