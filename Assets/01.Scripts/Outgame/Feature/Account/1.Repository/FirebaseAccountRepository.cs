@@ -10,42 +10,49 @@ public class FirebaseAccountRepository : IAccountRepository
     {
         _auth = FirebaseAuth.DefaultInstance;
     }
-    
+
     public async UniTask<AccountResult> Register(string email, string password)
     {
         try
         {
-            AuthResult result = await _auth.CreateUserWithEmailAndPasswordAsync(email, password).AsUniTask();
-            return new AccountResult()
+            await _auth.CreateUserWithEmailAndPasswordAsync(email, password).AsUniTask();
+            await UniTask.SwitchToMainThread();
+
+            return new AccountResult
             {
                 Success = true,
             };
-           
         }
         catch (Exception e)
         {
-            return new AccountResult()
+            await UniTask.SwitchToMainThread();
+
+            return new AccountResult
             {
                 Success = false,
                 ErrorMessage = e.Message
             };
         }
-       
     }
 
     public async UniTask<AccountResult> Login(string email, string password)
     {
         try
         {
-            AuthResult result = await _auth.SignInWithEmailAndPasswordAsync(email, password).AsUniTask();
-            return new AccountResult()
+            await _auth.SignInWithEmailAndPasswordAsync(email, password).AsUniTask();
+            await UniTask.SwitchToMainThread();
+
+            return new AccountResult
             {
                 Success = true,
+                Account = new Account(email, password)
             };
         }
         catch (Exception e)
         {
-            return new AccountResult()
+            await UniTask.SwitchToMainThread();
+
+            return new AccountResult
             {
                 Success = false,
                 ErrorMessage = e.Message

@@ -33,9 +33,10 @@ public class NewUpgradeManager : MonoBehaviour
         LoadData();
     }
 
-    private void LoadData()
+    private async void LoadData()
     {
-        int[] levelValues = _repository.Load().Levels;
+        UpgradeSaveData saveData = await _repository.Load();
+        int[] levelValues = saveData.Levels;
 
         for (int i = 0; i < _levels.Length; i++)
         {

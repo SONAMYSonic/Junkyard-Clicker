@@ -15,6 +15,7 @@ public class CurrencyManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        // _repository = new LocalCurrencyRepository(AccountManager.Instance.Email);
         _repository = new LocalCurrencyRepository();
     }
 
@@ -36,9 +37,10 @@ public class CurrencyManager : MonoBehaviour
         LoadData();
     }
 
-    private void LoadData()
+    private async void LoadData()
     {
-        double[] currencyValues = _repository.Load().Currencies;
+        CurrencySaveData saveData = await _repository.Load();
+        double[] currencyValues = saveData.Currencies;
 
         for (int i = 0; i < _currencies.Length; i++)
         {

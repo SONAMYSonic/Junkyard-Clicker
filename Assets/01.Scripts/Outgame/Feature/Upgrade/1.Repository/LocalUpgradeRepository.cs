@@ -1,10 +1,11 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 public class LocalUpgradeRepository : IUpgradeRepository
 {
     private const string KeyPrefix = "Upgrade_";
 
-    public void Save(UpgradeSaveData saveData)
+    public async UniTaskVoid Save(UpgradeSaveData saveData)
     {
         for (int i = 0; i < (int)EUpgradeType.Count; i++)
         {
@@ -16,7 +17,7 @@ public class LocalUpgradeRepository : IUpgradeRepository
         PlayerPrefs.Save();
     }
 
-    public UpgradeSaveData Load()
+    public async UniTask<UpgradeSaveData> Load()
     {
         UpgradeSaveData data = UpgradeSaveData.Default;
 

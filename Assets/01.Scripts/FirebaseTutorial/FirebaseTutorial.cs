@@ -195,7 +195,7 @@ public class FirebaseTutorial : MonoBehaviour
             }
 
             // Firebase user has been created.
-            Firebase.Auth.AuthResult result = task.Result;
+            AuthResult result = task.Result;
             Debug.LogFormat("Register Successful: {0} ({1})",
                 result.User.DisplayName, result.User.UserId);
         });
