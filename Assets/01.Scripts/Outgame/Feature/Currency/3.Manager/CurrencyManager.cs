@@ -15,8 +15,7 @@ public class CurrencyManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        // _repository = new LocalCurrencyRepository(AccountManager.Instance.Email);
-        _repository = new LocalCurrencyRepository();
+        _repository = new FirebaseCurrencyRepository();
     }
 
     private void OnEnable()

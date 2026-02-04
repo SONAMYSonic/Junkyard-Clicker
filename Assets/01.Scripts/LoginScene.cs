@@ -77,8 +77,7 @@ public class LoginScene : MonoBehaviour
         if (result.Success)
         {
             _messageTextUI.text = "로그인 성공!";
-            // TODO: 게임 씬으로 이동
-            // SceneManager.LoadScene("GameScene");
+            SceneManager.LoadScene("GameScene");
         }
         else
         {

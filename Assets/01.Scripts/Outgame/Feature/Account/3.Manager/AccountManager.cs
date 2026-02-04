@@ -19,7 +19,7 @@ public class AccountManager : MonoBehaviour
     {
         Instance = this;
         DontDestroyOnLoad(this.gameObject);
-        _repository = new LocalAccountRepository();
+        _repository = new FirebaseAccountRepository();
     }
 
     // 로그인 시도

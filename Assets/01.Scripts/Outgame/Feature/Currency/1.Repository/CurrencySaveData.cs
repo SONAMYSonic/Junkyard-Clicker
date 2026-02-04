@@ -1,6 +1,10 @@
+using Firebase.Firestore;
+
+[FirestoreData]
 public class CurrencySaveData
 {
-    public double[] Currencies;
+    [FirestoreProperty]
+    public double[] Currencies { get; set; }
 
     public static CurrencySaveData Default => new CurrencySaveData
     {

@@ -25,7 +25,7 @@ public class NewUpgradeManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        _repository = new LocalUpgradeRepository();
+        _repository = new FirebaseUpgradeRepository();
     }
 
     private void Start()

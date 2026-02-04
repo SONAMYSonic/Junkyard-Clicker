@@ -1,6 +1,10 @@
+using Firebase.Firestore;
+
+[FirestoreData]
 public class UpgradeSaveData
 {
-    public int[] Levels;
+    [FirestoreProperty]
+    public int[] Levels { get; set; }
 
     public static UpgradeSaveData Default => new UpgradeSaveData
     {
