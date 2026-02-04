@@ -1,21 +1,40 @@
 using System;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using JunkyardClicker.Core;
 
-public class CurrencyManager : MonoBehaviour
+/// <summary>
+/// 재화 관리자
+/// ICurrencyService 인터페이스를 구현하여 DIP 준수
+/// Firebase 초기화 완료 후 데이터 로드
+/// </summary>
+public class CurrencyManager : MonoBehaviour, ICurrencyService
 {
     public static CurrencyManager Instance { get; private set; }
 
     public static event Action OnDataChanged;
 
+    // ICurrencyService 인터페이스 이벤트 구현
+    event Action ICurrencyService.OnDataChanged
+    {
+        add => OnDataChanged += value;
+        remove => OnDataChanged -= value;
+    }
+
     private Currency[] _currencies = new Currency[(int)ECurrencyType.Count];
 
     private ICurrencyRepository _repository;
+
+    /// <summary>
+    /// 데이터 로드 완료 여부
+    /// </summary>
+    public bool IsDataLoaded { get; private set; }
 
     private void Awake()
     {
         Instance = this;
         _repository = new FirebaseCurrencyRepository();
+        ServiceLocator.Register<ICurrencyService>(this);
     }
 
     private void OnEnable()
@@ -33,18 +52,69 @@ public class CurrencyManager : MonoBehaviour
 
     private void Start()
     {
-        LoadData();
+        InitializeAsync().Forget();
     }
 
-    private async void LoadData()
+    /// <summary>
+    /// 비동기 초기화 - Firebase 준비 후 데이터 로드
+    /// </summary>
+    private async UniTaskVoid InitializeAsync()
     {
-        CurrencySaveData saveData = await _repository.Load();
-        double[] currencyValues = saveData.Currencies;
+        try
+        {
+            // Firebase 초기화 완료 대기
+            await FirebaseInitializer.InitializationTask;
 
+            await LoadDataAsync();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[CurrencyManager] 초기화 실패: {e.Message}");
+            // 기본값으로 초기화
+            InitializeWithDefaults();
+        }
+    }
+
+    private async UniTask LoadDataAsync()
+    {
+        try
+        {
+            CurrencySaveData saveData = await _repository.Load();
+
+            if (saveData?.Currencies == null || saveData.Currencies.Length == 0)
+            {
+                Debug.LogWarning("[CurrencyManager] 저장 데이터 없음, 기본값 사용");
+                InitializeWithDefaults();
+                return;
+            }
+
+            double[] currencyValues = saveData.Currencies;
+
+            for (int i = 0; i < _currencies.Length; i++)
+            {
+                _currencies[i] = i < currencyValues.Length ? currencyValues[i] : 0;
+            }
+
+            IsDataLoaded = true;
+            OnDataChanged?.Invoke();
+            Debug.Log("[CurrencyManager] 데이터 로드 완료");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[CurrencyManager] 데이터 로드 실패: {e.Message}");
+            InitializeWithDefaults();
+        }
+    }
+
+    private void InitializeWithDefaults()
+    {
         for (int i = 0; i < _currencies.Length; i++)
         {
-            _currencies[i] = currencyValues[i];
+            _currencies[i] = 0;
         }
+
+        IsDataLoaded = true;
+        OnDataChanged?.Invoke();
     }
 
     private void HandlePartCollected(PartType partType, int amount)

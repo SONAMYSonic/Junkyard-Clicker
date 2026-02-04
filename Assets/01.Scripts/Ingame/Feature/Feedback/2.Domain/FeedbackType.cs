@@ -1,4 +1,4 @@
-namespace JunkyardClicker.Ingame.Feedback
+namespace JunkyardClicker.Feedback
 {
     /// <summary>
     /// 피드백 유형

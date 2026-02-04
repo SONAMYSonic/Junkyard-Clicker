@@ -1,15 +1,14 @@
 using System;
 using UnityEngine;
 
-namespace JunkyardClicker.Ingame.Car
+namespace JunkyardClicker.Car
 {
     using JunkyardClicker.Core;
 
     /// <summary>
-    /// 차량 파츠 엔티티 - MonoBehaviour와 도메인 로직의 연결
-    /// 기존 CarPart.cs를 대체하는 새로운 구현
+    /// 차량 파츠 클래스 - MonoBehaviour와 도메인 로직의 연결
     /// </summary>
-    public class CarPartEntity : MonoBehaviour
+    public class CarPart : MonoBehaviour
     {
         [SerializeField]
         private SpriteRenderer _spriteRenderer;
@@ -22,7 +21,7 @@ namespace JunkyardClicker.Ingame.Car
         public bool IsDestroyed => _state?.IsDestroyed ?? true;
         public float HpRatio => _state?.HpRatio ?? 0f;
 
-        public event Action<CarPartEntity> OnDestroyed;
+        public event Action<CarPart> OnDestroyed;
 
         public void Initialize(CarPartData data, int carMaxHp)
         {
@@ -42,7 +41,7 @@ namespace JunkyardClicker.Ingame.Car
 
             if (_data == null)
             {
-                Debug.LogWarning($"CarPartEntity '{gameObject.name}'이 초기화되지 않았습니다.");
+                Debug.LogWarning($"CarPart '{gameObject.name}'이 초기화되지 않았습니다.");
                 return 0;
             }
 

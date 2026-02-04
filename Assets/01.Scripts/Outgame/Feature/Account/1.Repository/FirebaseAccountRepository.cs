@@ -4,12 +4,7 @@ using Firebase.Auth;
 
 public class FirebaseAccountRepository : IAccountRepository
 {
-    private FirebaseAuth _auth;
-
-    public FirebaseAccountRepository()
-    {
-        _auth = FirebaseAuth.DefaultInstance;
-    }
+    private FirebaseAuth _auth => FirebaseAuth.DefaultInstance;
 
     public async UniTask<AccountResult> Register(string email, string password)
     {

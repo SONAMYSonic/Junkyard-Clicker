@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace JunkyardClicker.Ingame.Car
+namespace JunkyardClicker.Car
 {
     using JunkyardClicker.Core;
 

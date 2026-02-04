@@ -1,16 +1,15 @@
 using UnityEngine;
 
-namespace JunkyardClicker.Ingame.Feedback
+namespace JunkyardClicker.Feedback
 {
     using JunkyardClicker.Core;
-    using JunkyardClicker.Feedback;
 
     /// <summary>
     /// 피드백 매니저 - 도메인 방식 구현
     /// </summary>
-    public class FeedbackManagerNew : MonoBehaviour, IFeedbackManager
+    public class FeedbackManager : MonoBehaviour, IFeedbackManager
     {
-        public static FeedbackManagerNew Instance { get; private set; }
+        public static FeedbackManager Instance { get; private set; }
 
         [SerializeField]
         private CameraShake _cameraShake;
@@ -27,10 +26,24 @@ namespace JunkyardClicker.Ingame.Feedback
         [SerializeField]
         private FeedbackConfig _config;
 
+        // Camera.main 캐싱 (매번 태그 검색 방지)
+        private Camera _mainCamera;
+
         private void Awake()
         {
             SetupSingleton();
+            CacheMainCamera();
             ServiceLocator.Register<IFeedbackManager>(this);
+        }
+
+        private void CacheMainCamera()
+        {
+            _mainCamera = Camera.main;
+
+            if (_mainCamera == null)
+            {
+                Debug.LogWarning("[FeedbackManager] Main Camera를 찾을 수 없습니다.");
+            }
         }
 
         private void SetupSingleton()
@@ -162,8 +175,18 @@ namespace JunkyardClicker.Ingame.Feedback
 
         private Vector3 GetPopupSpawnPosition()
         {
+            // 카메라가 없으면 기본 위치 반환
+            if (_mainCamera == null)
+            {
+                _mainCamera = Camera.main; // 재시도
+                if (_mainCamera == null)
+                {
+                    return Vector3.zero;
+                }
+            }
+
             Vector3 mousePosition = UnityEngine.Input.mousePosition;
-            Vector3 worldPosition = Camera.main.ScreenToWorldPoint(mousePosition);
+            Vector3 worldPosition = _mainCamera.ScreenToWorldPoint(mousePosition);
             worldPosition.z = 0f;
 
             float randomOffsetX = Random.Range(-0.3f, 0.3f);

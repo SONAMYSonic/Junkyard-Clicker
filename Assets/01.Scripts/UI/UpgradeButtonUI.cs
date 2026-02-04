@@ -36,14 +36,14 @@ namespace JunkyardClicker.UI
         private void OnEnable()
         {
             CurrencyManager.OnDataChanged += UpdateButtonInteractable;
-            NewUpgradeManager.OnUpgraded += HandleUpgraded;
+            UpgradeManager.OnUpgraded += HandleUpgraded;
             UpdateUI();
         }
 
         private void OnDisable()
         {
             CurrencyManager.OnDataChanged -= UpdateButtonInteractable;
-            NewUpgradeManager.OnUpgraded -= HandleUpgraded;
+            UpgradeManager.OnUpgraded -= HandleUpgraded;
         }
 
         private void Start()
@@ -53,9 +53,9 @@ namespace JunkyardClicker.UI
 
         private void OnButtonClicked()
         {
-            if (NewUpgradeManager.Instance != null)
+            if (UpgradeManager.Instance != null)
             {
-                NewUpgradeManager.Instance.TryUpgrade(_upgradeType);
+                UpgradeManager.Instance.TryUpgrade(_upgradeType);
             }
         }
 
@@ -66,13 +66,13 @@ namespace JunkyardClicker.UI
 
         private void UpdateUI()
         {
-            if (NewUpgradeManager.Instance == null)
+            if (UpgradeManager.Instance == null)
             {
                 return;
             }
 
-            int currentLevel = NewUpgradeManager.Instance.GetLevel(_upgradeType);
-            bool isMaxLevel = NewUpgradeManager.Instance.IsMaxLevel(_upgradeType);
+            int currentLevel = UpgradeManager.Instance.GetLevel(_upgradeType);
+            bool isMaxLevel = UpgradeManager.Instance.IsMaxLevel(_upgradeType);
 
             UpdateNameText();
             UpdateLevelText(currentLevel, isMaxLevel);
@@ -115,7 +115,7 @@ namespace JunkyardClicker.UI
                 return;
             }
 
-            int cost = NewUpgradeManager.Instance.GetUpgradeCost(_upgradeType);
+            int cost = UpgradeManager.Instance.GetUpgradeCost(_upgradeType);
             Currency costCurrency = cost;
             _costText.text = $"${costCurrency}";
         }
@@ -129,8 +129,8 @@ namespace JunkyardClicker.UI
 
             string effectDescription = _upgradeType switch
             {
-                EUpgradeType.Tool => $"클릭 데미지: {NewUpgradeManager.Instance.GetToolDamage(currentLevel)}",
-                EUpgradeType.Worker => $"초당 데미지: {NewUpgradeManager.Instance.GetWorkerDps(currentLevel)}",
+                EUpgradeType.Tool => $"클릭 데미지: {UpgradeManager.Instance.GetToolDamage(currentLevel)}",
+                EUpgradeType.Worker => $"초당 데미지: {UpgradeManager.Instance.GetWorkerDps(currentLevel)}",
                 _ => ""
             };
 
@@ -139,12 +139,12 @@ namespace JunkyardClicker.UI
 
         private void UpdateButtonInteractable()
         {
-            if (_button == null || NewUpgradeManager.Instance == null || CurrencyManager.Instance == null)
+            if (_button == null || UpgradeManager.Instance == null || CurrencyManager.Instance == null)
             {
                 return;
             }
 
-            bool isMaxLevel = NewUpgradeManager.Instance.IsMaxLevel(_upgradeType);
+            bool isMaxLevel = UpgradeManager.Instance.IsMaxLevel(_upgradeType);
 
             if (isMaxLevel)
             {
@@ -152,7 +152,7 @@ namespace JunkyardClicker.UI
                 return;
             }
 
-            int cost = NewUpgradeManager.Instance.GetUpgradeCost(_upgradeType);
+            int cost = UpgradeManager.Instance.GetUpgradeCost(_upgradeType);
             _button.interactable = CurrencyManager.Instance.CanAfford(ECurrencyType.Money, cost);
         }
 

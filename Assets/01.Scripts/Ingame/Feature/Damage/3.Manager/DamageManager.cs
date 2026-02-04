@@ -1,14 +1,16 @@
 using System;
 using UnityEngine;
 
-namespace JunkyardClicker.Ingame.Damage
+namespace JunkyardClicker.Resource
 {
     using JunkyardClicker.Core;
-    using JunkyardClicker.Ingame.Car;
+    using JunkyardClicker.Car;
+    using CarEntity = JunkyardClicker.Car.Car;
 
     /// <summary>
     /// 데미지 시스템 매니저
-    /// 클릭 및 자동 데미지 처리를 담당
+    /// 모든 데미지 처리를 담당 (SRP - 데미지 전용)
+    /// CarManager와 분리되어 단일 책임을 가짐
     /// </summary>
     public class DamageManager : MonoBehaviour, IDamageManager
     {
@@ -22,7 +24,6 @@ namespace JunkyardClicker.Ingame.Damage
         private void Awake()
         {
             SetupSingleton();
-            _damageCalculator = new UpgradeBasedDamageCalculator();
             ServiceLocator.Register<IDamageManager>(this);
         }
 
@@ -39,13 +40,30 @@ namespace JunkyardClicker.Ingame.Damage
 
         private void Start()
         {
+            InitializeDependencies();
+        }
+
+        private void InitializeDependencies()
+        {
+            // CarManager 의존성 주입
             if (ServiceLocator.TryGet<ICarManager>(out var carManager))
             {
                 _carManager = carManager;
             }
             else
             {
-                _carManager = CarManager.Instance;
+                _carManager = CarSpawner.Instance;
+            }
+
+            // DamageCalculator 의존성 주입 (업그레이드 서비스 주입)
+            if (ServiceLocator.TryGet<IUpgradeService>(out var upgradeService))
+            {
+                _damageCalculator = new UpgradeBasedDamageCalculator(upgradeService);
+            }
+            else
+            {
+                // 폴백: 기존 방식 (하위 호환성)
+                _damageCalculator = new UpgradeBasedDamageCalculator();
             }
         }
 
@@ -60,7 +78,9 @@ namespace JunkyardClicker.Ingame.Damage
 
         public void ApplyClickDamage(Vector2 worldPosition)
         {
-            if (_carManager == null || !_carManager.HasActiveCar)
+            CarEntity currentCar = GetCurrentCar();
+
+            if (currentCar == null)
             {
                 return;
             }
@@ -68,14 +88,18 @@ namespace JunkyardClicker.Ingame.Damage
             int damage = _damageCalculator.CalculateClickDamage();
             var damageInfo = new DamageInfo(damage, worldPosition, DamageSource.Click);
 
-            _carManager.ApplyDamageAtPosition(damage, worldPosition);
+            // 직접 Car에 데미지 적용 (CarManager를 거치지 않음)
+            ApplyDamageAtPosition(currentCar, damage, worldPosition);
 
             OnDamageApplied?.Invoke(damageInfo);
+            GameEvents.RaiseDamageDealt(damage);
         }
 
         public void ApplyAutoDamage()
         {
-            if (_carManager == null || !_carManager.HasActiveCar)
+            CarEntity currentCar = GetCurrentCar();
+
+            if (currentCar == null)
             {
                 return;
             }
@@ -89,14 +113,40 @@ namespace JunkyardClicker.Ingame.Damage
 
             var damageInfo = new DamageInfo(damage, DamageSource.Auto);
 
-            _carManager.ApplyDamage(damage);
+            // 직접 Car에 데미지 적용
+            currentCar.TakeDamage(damage);
 
             OnDamageApplied?.Invoke(damageInfo);
+            GameEvents.RaiseDamageDealt(damage);
+        }
+
+        private CarEntity GetCurrentCar()
+        {
+            if (_carManager == null || !_carManager.HasActiveCar)
+            {
+                return null;
+            }
+
+            return _carManager.CurrentCar;
+        }
+
+        private void ApplyDamageAtPosition(CarEntity car, int damage, Vector2 worldPosition)
+        {
+            CarPart clickedPart = car.GetPartAtPosition(worldPosition);
+
+            if (clickedPart != null)
+            {
+                car.TakeDamageOnPart(clickedPart, damage);
+            }
+            else
+            {
+                car.TakeDamage(damage);
+            }
         }
 
         public void SetDamageCalculator(IDamageCalculator calculator)
         {
-            _damageCalculator = calculator;
+            _damageCalculator = calculator ?? throw new ArgumentNullException(nameof(calculator));
         }
     }
 }

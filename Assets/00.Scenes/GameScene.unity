@@ -271,7 +271,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 71519509}
-  - component: {fileID: 71519508}
+  - component: {fileID: 71519510}
   m_Layer: 0
   m_Name: ClickHandler
   m_TagString: Untagged
@@ -279,19 +279,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &71519508
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 71519507}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 02381b7b1eff9934c96fd9004d07f2ad, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Input.ClickHandler
-  _mainCamera: {fileID: 519420031}
 --- !u!4 &71519509
 Transform:
   m_ObjectHideFlags: 0
@@ -307,6 +294,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &71519510
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 71519507}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c43be551f3f54c94baf3fda6c54d0677, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Input.ClickHandler
+  _mainCamera: {fileID: 519420031}
 --- !u!1 &109255100
 GameObject:
   m_ObjectHideFlags: 0
@@ -2543,9 +2543,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1165825630}
-  - component: {fileID: 1165825629}
-  - component: {fileID: 1165825628}
-  - component: {fileID: 1165825627}
+  - component: {fileID: 1165825631}
   m_Layer: 0
   m_Name: FeedbackSystem
   m_TagString: Untagged
@@ -2553,61 +2551,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1165825627
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1165825626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e878ac536d317bb4b8d6a26269b9a690, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Feedback.HitStop
-  _timeScaleDuringStop: 0
---- !u!114 &1165825628
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1165825626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 57ecbd9ff488aa44c843c50039f472aa, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Feedback.CameraShake
-  _cameraTransform: {fileID: 519420032}
-  _shakeCurve:
-    serializedVersion: 2
-    m_Curve: []
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
---- !u!114 &1165825629
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1165825626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2a753a4ab1d2a0b4897b848204675cd3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Feedback.FeedbackManager
-  _cameraShake: {fileID: 1165825628}
-  _hitStop: {fileID: 1165825627}
-  _damagePopupPrefab: {fileID: 0}
-  _popupContainer: {fileID: 0}
-  _normalHitShakeIntensity: 0.1
-  _normalHitShakeDuration: 0.1
-  _partDestroyShakeIntensity: 0.3
-  _partDestroyShakeDuration: 0.2
-  _carDestroyShakeIntensity: 0.5
-  _carDestroyShakeDuration: 0.3
-  _hitStopDuration: 0.03
 --- !u!4 &1165825630
 Transform:
   m_ObjectHideFlags: 0
@@ -2623,6 +2566,23 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1165825631
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1165825626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a350d32d35cb52f43a6584a391bfb428, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Feedback.FeedbackManager
+  _cameraShake: {fileID: 0}
+  _hitStop: {fileID: 0}
+  _damagePopupPrefab: {fileID: 0}
+  _popupContainer: {fileID: 0}
+  _config: {fileID: 0}
 --- !u!1 &1226744986
 GameObject:
   m_ObjectHideFlags: 0
@@ -3007,6 +2967,51 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1586895623
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1586895625}
+  - component: {fileID: 1586895624}
+  m_Layer: 0
+  m_Name: AutoDamageHandler
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1586895624
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1586895623}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e2c084281dbcbe499b1ccff8e67b92f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Resource.AutoDamageHandler
+  _tickInterval: 1
+--- !u!4 &1586895625
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1586895623}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1603733724
 GameObject:
   m_ObjectHideFlags: 0
@@ -3017,7 +3022,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1603733729}
   - component: {fileID: 1603733728}
-  - component: {fileID: 1603733725}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -3025,19 +3029,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1603733725
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1603733724}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 16f4eb8a84fe76443948103622220790, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Resource.AutoDamageHandler
-  _tickInterval: 1
 --- !u!114 &1603733728
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3050,9 +3041,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 65fd053d601473846ab76c4ebc33f503, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Core.GameManager
-  _carSpawner: {fileID: 2012458887}
-  _clickHandler: {fileID: 71519508}
-  _autoDamageHandler: {fileID: 1603733725}
+  _carSpawner: {fileID: 2012458891}
+  _clickHandler: {fileID: 71519510}
+  _autoDamageHandler: {fileID: 1586895624}
 --- !u!4 &1603733729
 Transform:
   m_ObjectHideFlags: 0
@@ -3246,11 +3237,8 @@ GameObject:
   m_Component:
   - component: {fileID: 1796587646}
   - component: {fileID: 1796587645}
-  - component: {fileID: 1796587644}
   - component: {fileID: 1796587643}
-  - component: {fileID: 1796587642}
-  - component: {fileID: 1796587641}
-  - component: {fileID: 1796587640}
+  - component: {fileID: 1796587647}
   m_Layer: 0
   m_Name: Managers
   m_TagString: Untagged
@@ -3258,42 +3246,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1796587640
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1796587639}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d64c85c46a5d4754aafbc013df140a06, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GameEventBridge
---- !u!114 &1796587641
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1796587639}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 21c8f00276c712042a2a5253b7df2216, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NewUpgradeManager
---- !u!114 &1796587642
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1796587639}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1dd0ba7a220583345b1a1449f852200a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CurrencyManager
 --- !u!114 &1796587643
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3306,18 +3258,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d64c85c46a5d4754aafbc013df140a06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameEventBridge
---- !u!114 &1796587644
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1796587639}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 21c8f00276c712042a2a5253b7df2216, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NewUpgradeManager
 --- !u!114 &1796587645
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3345,6 +3285,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1796587647
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1796587639}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9e2449f07620144b913dd3d45de6960, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Resource.DamageManager
 --- !u!1 &1838235041
 GameObject:
   m_ObjectHideFlags: 0
@@ -3627,7 +3579,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2012458888}
-  - component: {fileID: 2012458887}
+  - component: {fileID: 2012458891}
   m_Layer: 0
   m_Name: CarSpawner
   m_TagString: Untagged
@@ -3635,24 +3587,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &2012458887
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2012458886}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ab4de1bcb806b424a99eb48cdf031fc2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarSpawner
-  _spawnPoint: {fileID: 1736594214}
-  _carPrefab: {fileID: 1691145325165923497, guid: 9415a3aac2fbad84e93e63437843dd5f, type: 3}
-  _carDataList:
-  - {fileID: 11400000, guid: d3b6a836af58a094cbcda777f2315ee1, type: 2}
-  - {fileID: 11400000, guid: facde86bd4242a34ca1470f955a9c353, type: 2}
-  - {fileID: 11400000, guid: aad6b4c14fe56134ba9e1dd9147843e1, type: 2}
 --- !u!4 &2012458888
 Transform:
   m_ObjectHideFlags: 0
@@ -3668,6 +3602,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2012458891
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2012458886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8d42d29f230354948bd5a8fdd7e711fb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarSpawner
+  _spawnPoint: {fileID: 0}
+  _carPrefab: {fileID: 0}
+  _carDataList: []
+  _respawnDelay: 1
 --- !u!1 &2026115844
 GameObject:
   m_ObjectHideFlags: 0
@@ -3954,6 +3904,7 @@ SceneRoots:
   - {fileID: 2012458888}
   - {fileID: 71519509}
   - {fileID: 1165825630}
+  - {fileID: 1586895625}
   - {fileID: 1377958986}
   - {fileID: 1736594214}
   - {fileID: 882872711}

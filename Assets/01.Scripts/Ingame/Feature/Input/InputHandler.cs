@@ -1,22 +1,33 @@
+using System;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
-namespace JunkyardClicker.Ingame.Input
+namespace JunkyardClicker.Input
 {
     using JunkyardClicker.Core;
-    using JunkyardClicker.Ingame.Damage;
+    using JunkyardClicker.Resource;
 
     /// <summary>
-    /// 입력 처리 핸들러
-    /// 클릭/터치 입력을 감지하고 DamageManager에 전달
+    /// 클릭 핸들러
+    /// IInputHandler 인터페이스 구현
+    /// 클릭/터치 입력을 감지하고 이벤트 발행
     /// </summary>
-    public class InputHandler : MonoBehaviour
+    public class ClickHandler : MonoBehaviour, IInputHandler
     {
         [SerializeField]
         private Camera _mainCamera;
 
         private IDamageManager _damageManager;
+        private bool _isEnabled = true;
+
+        public event Action<Vector2> OnClicked;
+
+        public bool IsEnabled
+        {
+            get => _isEnabled;
+            set => _isEnabled = value;
+        }
 
         private void Awake()
         {
@@ -24,6 +35,8 @@ namespace JunkyardClicker.Ingame.Input
             {
                 _mainCamera = Camera.main;
             }
+
+            ServiceLocator.Register<IInputHandler>(this);
         }
 
         private void Start()
@@ -38,8 +51,18 @@ namespace JunkyardClicker.Ingame.Input
             }
         }
 
+        private void OnDestroy()
+        {
+            ServiceLocator.Unregister<IInputHandler>();
+        }
+
         private void Update()
         {
+            if (!_isEnabled)
+            {
+                return;
+            }
+
             if (WasClickedThisFrame())
             {
                 HandleClick();
@@ -68,13 +91,16 @@ namespace JunkyardClicker.Ingame.Input
                 return;
             }
 
-            if (_damageManager == null)
-            {
-                return;
-            }
-
             Vector2 worldPosition = GetWorldPosition();
-            _damageManager.ApplyClickDamage(worldPosition);
+
+            // 이벤트 발행 (다른 시스템이 구독 가능)
+            OnClicked?.Invoke(worldPosition);
+
+            // 데미지 적용
+            if (_damageManager != null)
+            {
+                _damageManager.ApplyClickDamage(worldPosition);
+            }
         }
 
         private bool IsPointerOverUI()

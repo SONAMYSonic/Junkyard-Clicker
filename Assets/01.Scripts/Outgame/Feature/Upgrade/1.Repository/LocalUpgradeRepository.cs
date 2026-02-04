@@ -5,7 +5,7 @@ public class LocalUpgradeRepository : IUpgradeRepository
 {
     private const string KeyPrefix = "Upgrade_";
 
-    public async UniTaskVoid Save(UpgradeSaveData saveData)
+    public UniTaskVoid Save(UpgradeSaveData saveData)
     {
         for (int i = 0; i < (int)EUpgradeType.Count; i++)
         {
@@ -15,9 +15,10 @@ public class LocalUpgradeRepository : IUpgradeRepository
         }
 
         PlayerPrefs.Save();
+        return default;
     }
 
-    public async UniTask<UpgradeSaveData> Load()
+    public UniTask<UpgradeSaveData> Load()
     {
         UpgradeSaveData data = UpgradeSaveData.Default;
 
@@ -32,6 +33,6 @@ public class LocalUpgradeRepository : IUpgradeRepository
             }
         }
 
-        return data;
+        return UniTask.FromResult(data);
     }
 }

@@ -1,6 +1,6 @@
 using System;
 
-namespace JunkyardClicker.Ingame.Damage
+namespace JunkyardClicker.Resource
 {
     /// <summary>
     /// 데미지 시스템 매니저 인터페이스

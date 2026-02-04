@@ -8,8 +8,8 @@ public class FirebaseUpgradeRepository : IUpgradeRepository
 {
     private const string COLLECTION_NAME = "Upgrades";
 
-    private FirebaseAuth _auth = FirebaseAuth.DefaultInstance;
-    private FirebaseFirestore _db = FirebaseFirestore.DefaultInstance;
+    private FirebaseAuth _auth => FirebaseAuth.DefaultInstance;
+    private FirebaseFirestore _db => FirebaseFirestore.DefaultInstance;
 
     public async UniTaskVoid Save(UpgradeSaveData saveData)
     {

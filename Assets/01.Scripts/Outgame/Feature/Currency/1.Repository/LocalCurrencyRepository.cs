@@ -5,7 +5,7 @@ public class LocalCurrencyRepository : ICurrencyRepository
 {
     private const string KeyPrefix = "Currency_";
 
-    public async UniTaskVoid Save(CurrencySaveData saveData)
+    public UniTaskVoid Save(CurrencySaveData saveData)
     {
         for (int i = 0; i < (int)ECurrencyType.Count; i++)
         {
@@ -15,9 +15,10 @@ public class LocalCurrencyRepository : ICurrencyRepository
         }
 
         PlayerPrefs.Save();
+        return default;
     }
 
-    public async UniTask<CurrencySaveData> Load()
+    public UniTask<CurrencySaveData> Load()
     {
         CurrencySaveData data = CurrencySaveData.Default;
 
@@ -32,6 +33,6 @@ public class LocalCurrencyRepository : ICurrencyRepository
             }
         }
 
-        return data;
+        return UniTask.FromResult(data);
     }
 }

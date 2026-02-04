@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace JunkyardClicker.Ingame.Feedback
+namespace JunkyardClicker.Feedback
 {
     /// <summary>
     /// 피드백 설정 데이터

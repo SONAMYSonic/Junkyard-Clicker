@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace JunkyardClicker.Ingame.Damage
+namespace JunkyardClicker.Resource
 {
     /// <summary>
     /// 데미지 정보를 나타내는 값 객체

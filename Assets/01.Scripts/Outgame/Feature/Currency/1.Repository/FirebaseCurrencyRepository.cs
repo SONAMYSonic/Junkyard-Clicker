@@ -8,8 +8,8 @@ public class FirebaseCurrencyRepository : ICurrencyRepository
 {
     private const string COLLECTION_NAME = "Currencies";
 
-    private FirebaseAuth _auth = FirebaseAuth.DefaultInstance;
-    private FirebaseFirestore _db = FirebaseFirestore.DefaultInstance;
+    private FirebaseAuth _auth => FirebaseAuth.DefaultInstance;
+    private FirebaseFirestore _db => FirebaseFirestore.DefaultInstance;
 
     public async UniTaskVoid Save(CurrencySaveData saveData)
     {

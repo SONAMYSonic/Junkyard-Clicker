@@ -1,11 +1,25 @@
 using System;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
+using JunkyardClicker.Core;
 
-public class NewUpgradeManager : MonoBehaviour
+/// <summary>
+/// 업그레이드 관리자
+/// IUpgradeService 인터페이스를 구현하여 DIP 준수
+/// Firebase 초기화 완료 후 데이터 로드
+/// </summary>
+public class UpgradeManager : MonoBehaviour, IUpgradeService
 {
-    public static NewUpgradeManager Instance { get; private set; }
+    public static UpgradeManager Instance { get; private set; }
 
     public static event Action OnUpgraded;
+
+    // IUpgradeService 인터페이스 이벤트 구현
+    event Action IUpgradeService.OnUpgraded
+    {
+        add => OnUpgraded += value;
+        remove => OnUpgraded -= value;
+    }
 
     private static readonly int[] s_toolDamageTable = new int[] { 1, 3, 8, 15, 30, 60, 120 };
     private static readonly int[] s_workerDpsTable = new int[] { 0, 1, 3, 8, 20, 50 };
@@ -22,26 +36,83 @@ public class NewUpgradeManager : MonoBehaviour
     public int ToolDamage => GetToolDamage(ToolLevel);
     public int WorkerDps => GetWorkerDps(WorkerLevel);
 
+    /// <summary>
+    /// 데이터 로드 완료 여부
+    /// </summary>
+    public bool IsDataLoaded { get; private set; }
+
     private void Awake()
     {
         Instance = this;
         _repository = new FirebaseUpgradeRepository();
+        ServiceLocator.Register<IUpgradeService>(this);
     }
 
     private void Start()
     {
-        LoadData();
+        InitializeAsync().Forget();
     }
 
-    private async void LoadData()
+    /// <summary>
+    /// 비동기 초기화 - Firebase 준비 후 데이터 로드
+    /// </summary>
+    private async UniTaskVoid InitializeAsync()
     {
-        UpgradeSaveData saveData = await _repository.Load();
-        int[] levelValues = saveData.Levels;
+        try
+        {
+            // Firebase 초기화 완료 대기
+            await FirebaseInitializer.InitializationTask;
 
+            await LoadDataAsync();
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[UpgradeManager] 초기화 실패: {e.Message}");
+            // 기본값으로 초기화
+            InitializeWithDefaults();
+        }
+    }
+
+    private async UniTask LoadDataAsync()
+    {
+        try
+        {
+            UpgradeSaveData saveData = await _repository.Load();
+
+            if (saveData?.Levels == null || saveData.Levels.Length == 0)
+            {
+                Debug.LogWarning("[UpgradeManager] 저장 데이터 없음, 기본값 사용");
+                InitializeWithDefaults();
+                return;
+            }
+
+            int[] levelValues = saveData.Levels;
+
+            for (int i = 0; i < _levels.Length; i++)
+            {
+                _levels[i] = i < levelValues.Length ? levelValues[i] : 0;
+            }
+
+            IsDataLoaded = true;
+            OnUpgraded?.Invoke();
+            Debug.Log("[UpgradeManager] 데이터 로드 완료");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"[UpgradeManager] 데이터 로드 실패: {e.Message}");
+            InitializeWithDefaults();
+        }
+    }
+
+    private void InitializeWithDefaults()
+    {
         for (int i = 0; i < _levels.Length; i++)
         {
-            _levels[i] = levelValues[i];
+            _levels[i] = 0;
         }
+
+        IsDataLoaded = true;
+        OnUpgraded?.Invoke();
     }
 
     public int GetLevel(EUpgradeType type)

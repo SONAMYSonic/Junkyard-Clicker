@@ -1,34 +1,25 @@
 using UnityEngine;
 using JunkyardClicker.Core;
 
+/// <summary>
+/// 게임 이벤트 브릿지
+/// 주의: 재화 처리는 CurrencyManager가 직접 GameEvents를 구독하므로
+/// 여기서는 재화 관련 이벤트를 처리하지 않음 (중복 방지)
+///
+/// 이 클래스는 다른 시스템 간의 이벤트 연결이 필요할 때 사용
+/// </summary>
 public class GameEventBridge : MonoBehaviour
 {
+    // 재화 관련 이벤트는 CurrencyManager가 직접 처리함
+    // 중복 처리 버그 수정: HandleCarDestroyed, HandlePartCollected 제거
+
     private void OnEnable()
     {
-        GameEvents.OnCarDestroyed += HandleCarDestroyed;
-        GameEvents.OnPartCollected += HandlePartCollected;
+        // 필요한 다른 이벤트 브릿지 연결
     }
 
     private void OnDisable()
     {
-        GameEvents.OnCarDestroyed -= HandleCarDestroyed;
-        GameEvents.OnPartCollected -= HandlePartCollected;
-    }
-
-    private void HandleCarDestroyed(int reward)
-    {
-        if (CurrencyManager.Instance != null)
-        {
-            CurrencyManager.Instance.Add(ECurrencyType.Money, reward);
-        }
-    }
-
-    private void HandlePartCollected(PartType partType, int amount)
-    {
-        if (CurrencyManager.Instance != null)
-        {
-            ECurrencyType currencyType = CurrencyTypeHelper.ToECurrencyType(partType);
-            CurrencyManager.Instance.Add(currencyType, amount);
-        }
+        // 이벤트 구독 해제
     }
 }

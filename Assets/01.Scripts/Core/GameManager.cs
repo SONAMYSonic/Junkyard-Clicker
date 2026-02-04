@@ -48,22 +48,22 @@ namespace JunkyardClicker.Core
 
         public int GetClickDamage()
         {
-            if (NewUpgradeManager.Instance == null)
+            if (UpgradeManager.Instance == null)
             {
                 return 1;
             }
 
-            return NewUpgradeManager.Instance.ToolDamage;
+            return UpgradeManager.Instance.ToolDamage;
         }
 
         public int GetAutoDamagePerSecond()
         {
-            if (NewUpgradeManager.Instance == null)
+            if (UpgradeManager.Instance == null)
             {
                 return 0;
             }
 
-            return NewUpgradeManager.Instance.WorkerDps;
+            return UpgradeManager.Instance.WorkerDps;
         }
     }
 }

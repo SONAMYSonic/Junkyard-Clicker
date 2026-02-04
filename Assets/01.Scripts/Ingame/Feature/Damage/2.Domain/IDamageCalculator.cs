@@ -1,4 +1,4 @@
-namespace JunkyardClicker.Ingame.Damage
+namespace JunkyardClicker.Resource
 {
     /// <summary>
     /// 데미지 계산 인터페이스
