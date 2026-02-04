@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using Cysharp.Threading.Tasks;
 
 // 매니저의 역할:
 // 1. 도메인 관리: 생성/조회/수정/삭제와 같은 비즈니스 로직 
@@ -17,11 +18,12 @@ public class AccountManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        DontDestroyOnLoad(this.gameObject);
         _repository = new LocalAccountRepository();
     }
 
     // 로그인 시도
-    public AuthResult TryLogin(string email, string password)
+    public async UniTask<AccountResult> TryLogin(string email, string password)
     {
         // 1. 유효성 검사 (도메인 규칙)
         try
@@ -30,7 +32,7 @@ public class AccountManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            return new AuthResult
+            return new AccountResult
             {
                 Success = false,
                 ErrorMessage = ex.Message,
@@ -38,11 +40,11 @@ public class AccountManager : MonoBehaviour
         }
 
         // 2. 레포지토리를 이용한 로그인
-        AuthResult result = _repository.Login(email, password);
+        AccountResult result = await _repository.Login(email, password);
         if (result.Success)
         {
             _currentAccount = result.Account;
-            return new AuthResult
+            return new AccountResult
             {
                 Success = true,
                 Account = _currentAccount,
@@ -50,7 +52,7 @@ public class AccountManager : MonoBehaviour
         }
         else
         {
-            return new AuthResult
+            return new AccountResult
             {
                 Success = false,
                 ErrorMessage = result.ErrorMessage,
@@ -59,7 +61,7 @@ public class AccountManager : MonoBehaviour
     }
 
     // 회원가입 시도
-    public AuthResult TryRegister(string email, string password)
+    public async UniTask<AccountResult> TryRegister(string email, string password)
     {
         // 1. 유효성 검사 (도메인 규칙)
         try
@@ -68,7 +70,7 @@ public class AccountManager : MonoBehaviour
         }
         catch (Exception ex)
         {
-            return new AuthResult
+            return new AccountResult
             {
                 Success = false,
                 ErrorMessage = ex.Message,
@@ -76,17 +78,17 @@ public class AccountManager : MonoBehaviour
         }
         
         // 2. 레포지토리를 이용한 회원가입
-        AuthResult result = _repository.Register(email, password);
+        AccountResult result = await _repository.Register(email, password);
         if (result.Success)
         {
-            return new AuthResult
+            return new AccountResult
             {
                 Success = true,
             };
         }
         else
         {
-            return new AuthResult
+            return new AccountResult
             {
                 Success = false,
                 ErrorMessage = result.ErrorMessage,

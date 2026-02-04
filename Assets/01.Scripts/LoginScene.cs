@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -68,12 +69,12 @@ public class LoginScene : MonoBehaviour
     }
     
     // 로그인 실행
-    private void Login()
+    private async void Login()
     {
         string email = _emailInputField.text;
         string password = _passwordInputField.text;
-        
-        var result = AccountManager.Instance.TryLogin(email, password);
+
+        var result = await AccountManager.Instance.TryLogin(email, password);
         if (result.Success)
         {
             _messageTextUI.text = "로그인 성공!";
@@ -87,12 +88,12 @@ public class LoginScene : MonoBehaviour
     }
 
     // 회원가입 실행
-    private void Register()
+    private async void Register()
     {
         string email = _emailInputField.text;
         string password = _passwordInputField.text;
         string passwordConfirm = _passwordConfirmInputField.text;
-        
+
         // 비밀번호 확인 일치 검사
         if (string.IsNullOrEmpty(passwordConfirm) || password != passwordConfirm)
         {
@@ -100,7 +101,7 @@ public class LoginScene : MonoBehaviour
             return;
         }
 
-        var result = AccountManager.Instance.TryRegister(email, password);
+        var result = await AccountManager.Instance.TryRegister(email, password);
         if (result.Success)
         {
             _messageTextUI.text = "회원가입 성공! 로그인해주세요.";
