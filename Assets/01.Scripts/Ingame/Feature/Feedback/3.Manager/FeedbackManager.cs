@@ -179,11 +179,7 @@ namespace JunkyardClicker.Feedback
             // 카메라가 없으면 기본 위치 반환
             if (_mainCamera == null)
             {
-                _mainCamera = Camera.main; // 재시도
-                if (_mainCamera == null)
-                {
-                    return Vector3.zero;
-                }
+                return Vector3.zero;
             }
 
             // New Input System 사용
