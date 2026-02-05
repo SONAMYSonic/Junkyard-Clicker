@@ -29,6 +29,7 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
     private int[] _levels = new int[(int)EUpgradeType.Count];
 
     private IUpgradeRepository _repository;
+    private ICurrencyService _currencyService;
 
     public int ToolLevel => _levels[(int)EUpgradeType.Tool];
     public int WorkerLevel => _levels[(int)EUpgradeType.Worker];
@@ -46,6 +47,9 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
         Instance = this;
         _repository = new FirebaseUpgradeRepository();
         ServiceLocator.Register<IUpgradeService>(this);
+
+        // CurrencyService 의존성 - Start에서 다시 시도
+        ServiceLocator.TryGet<ICurrencyService>(out _currencyService);
     }
 
     private void Start()
@@ -195,9 +199,21 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
             return false;
         }
 
+        // CurrencyService 지연 로딩 (Awake 시점에 없을 수 있음)
+        if (_currencyService == null)
+        {
+            ServiceLocator.TryGet<ICurrencyService>(out _currencyService);
+        }
+
+        if (_currencyService == null)
+        {
+            Debug.LogWarning("[UpgradeManager] CurrencyService를 찾을 수 없습니다.");
+            return false;
+        }
+
         int cost = GetUpgradeCost(type);
 
-        if (CurrencyManager.Instance.TrySpend(ECurrencyType.Money, cost))
+        if (_currencyService.TrySpend(ECurrencyType.Money, cost))
         {
             _levels[(int)type]++;
             Save();

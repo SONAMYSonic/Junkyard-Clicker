@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "mcp__unityMCP__find_gameobjects",
-      "Bash(dir:*)"
+      "Bash(dir:*)",
+      "mcp__unityMCP__manage_prefabs"
     ]
   }
 }

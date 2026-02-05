@@ -3,22 +3,21 @@ using UnityEngine;
 namespace JunkyardClicker.Core
 {
     using Car;
-    using Input;
-    using Resource;
 
+    /// <summary>
+    /// 게임 매니저 - 싱글톤 및 핵심 참조 관리
+    /// 데미지 계산은 DamageCalculator가 담당 (SRP)
+    /// </summary>
     public class GameManager : MonoBehaviour
     {
         public static GameManager Instance { get; private set; }
 
-        [Header("Handlers")]
+        [Header("Core References")]
         [SerializeField]
         private CarSpawner _carSpawner;
 
-        [SerializeField]
-        private ClickHandler _clickHandler;
-
-        [SerializeField]
-        private AutoDamageHandler _autoDamageHandler;
+        // ClickHandler, AutoDamageHandler는 자체 싱글톤으로 작동
+        // 불필요한 참조 제거 (미사용 필드)
 
         public CarSpawner Spawner => _carSpawner;
 
@@ -46,24 +45,7 @@ namespace JunkyardClicker.Core
             }
         }
 
-        public int GetClickDamage()
-        {
-            if (UpgradeManager.Instance == null)
-            {
-                return 1;
-            }
-
-            return UpgradeManager.Instance.ToolDamage;
-        }
-
-        public int GetAutoDamagePerSecond()
-        {
-            if (UpgradeManager.Instance == null)
-            {
-                return 0;
-            }
-
-            return UpgradeManager.Instance.WorkerDps;
-        }
+        // GetClickDamage(), GetAutoDamagePerSecond() 제거
+        // DamageCalculator (IDamageCalculator)가 담당 (SRP)
     }
 }

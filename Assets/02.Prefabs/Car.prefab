@@ -43,7 +43,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 560545264181817191}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30fc42b21c000a94383f81e6fa6394d5, type: 3}
+  m_Script: {fileID: 11500000, guid: 78265a3d15f29964d801083414a837dd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.Car
   _baseRenderer: {fileID: 219757523597255529}
@@ -157,7 +157,6 @@ GameObject:
   - component: {fileID: 8998109440083310351}
   - component: {fileID: 204816837262906655}
   - component: {fileID: 894871853426904824}
-  - component: {fileID: 2366487445827563811}
   m_Layer: 0
   m_Name: DoorRight
   m_TagString: Untagged
@@ -189,7 +188,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5397292873317680172}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
   _spriteRenderer: {fileID: 204816837262906655}
@@ -298,21 +297,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.8, y: 1}
   m_EdgeRadius: 0
---- !u!114 &2366487445827563811
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5397292873317680172}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0809aabf4dcc2d74695fcf77fba35a08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Feedback.SpriteFlash
-  _flashColor: {r: 1, g: 1, b: 1, a: 1}
-  _flashDuration: 0.05
-  _flashMaterial: {fileID: 0}
 --- !u!1 &5430488829142752107
 GameObject:
   m_ObjectHideFlags: 0
@@ -362,7 +346,6 @@ GameObject:
   - component: {fileID: 8231728285337210716}
   - component: {fileID: 6247499704684329814}
   - component: {fileID: 7922434234385626299}
-  - component: {fileID: 5914423537756412480}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -394,7 +377,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 5632877315563165246}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
   _spriteRenderer: {fileID: 6247499704684329814}
@@ -503,21 +486,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2, y: 1}
   m_EdgeRadius: 0
---- !u!114 &5914423537756412480
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5632877315563165246}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0809aabf4dcc2d74695fcf77fba35a08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Feedback.SpriteFlash
-  _flashColor: {r: 1, g: 1, b: 1, a: 1}
-  _flashDuration: 0.05
-  _flashMaterial: {fileID: 0}
 --- !u!1 &6398537514250974744
 GameObject:
   m_ObjectHideFlags: 0
@@ -530,7 +498,6 @@ GameObject:
   - component: {fileID: 3137136290725526474}
   - component: {fileID: 4259795893435319487}
   - component: {fileID: 5931220810353130574}
-  - component: {fileID: 4100140125564690599}
   m_Layer: 0
   m_Name: Trunk
   m_TagString: Untagged
@@ -562,7 +529,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6398537514250974744}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
   _spriteRenderer: {fileID: 4259795893435319487}
@@ -671,21 +638,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 0.8}
   m_EdgeRadius: 0
---- !u!114 &4100140125564690599
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6398537514250974744}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0809aabf4dcc2d74695fcf77fba35a08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Feedback.SpriteFlash
-  _flashColor: {r: 1, g: 1, b: 1, a: 1}
-  _flashDuration: 0.05
-  _flashMaterial: {fileID: 0}
 --- !u!1 &6863310186487414832
 GameObject:
   m_ObjectHideFlags: 0
@@ -698,7 +650,6 @@ GameObject:
   - component: {fileID: 6283384889936805138}
   - component: {fileID: 3618366692862489435}
   - component: {fileID: 6654905500059785791}
-  - component: {fileID: 165775326399102590}
   m_Layer: 0
   m_Name: Windshield
   m_TagString: Untagged
@@ -730,7 +681,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6863310186487414832}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
   _spriteRenderer: {fileID: 3618366692862489435}
@@ -839,21 +790,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.2, y: 0.6}
   m_EdgeRadius: 0
---- !u!114 &165775326399102590
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6863310186487414832}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0809aabf4dcc2d74695fcf77fba35a08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Feedback.SpriteFlash
-  _flashColor: {r: 1, g: 1, b: 1, a: 1}
-  _flashDuration: 0.05
-  _flashMaterial: {fileID: 0}
 --- !u!1 &6921474319971987599
 GameObject:
   m_ObjectHideFlags: 0
@@ -866,7 +802,6 @@ GameObject:
   - component: {fileID: 291293021479093811}
   - component: {fileID: 879563278173192925}
   - component: {fileID: 7183114956240396518}
-  - component: {fileID: 1814463859429971862}
   m_Layer: 0
   m_Name: Hood
   m_TagString: Untagged
@@ -898,7 +833,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 6921474319971987599}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
   _spriteRenderer: {fileID: 879563278173192925}
@@ -1007,21 +942,6 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.5, y: 0.8}
   m_EdgeRadius: 0
---- !u!114 &1814463859429971862
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6921474319971987599}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0809aabf4dcc2d74695fcf77fba35a08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Feedback.SpriteFlash
-  _flashColor: {r: 1, g: 1, b: 1, a: 1}
-  _flashDuration: 0.05
-  _flashMaterial: {fileID: 0}
 --- !u!1 &8723984597966743162
 GameObject:
   m_ObjectHideFlags: 0
@@ -1034,7 +954,6 @@ GameObject:
   - component: {fileID: 2074611283571781805}
   - component: {fileID: 4702623508000114870}
   - component: {fileID: 8486195285669545707}
-  - component: {fileID: 5867643440964228668}
   m_Layer: 0
   m_Name: DoorLeft
   m_TagString: Untagged
@@ -1066,7 +985,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 8723984597966743162}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 729a9c0a79770c342b55c7b3d726f45d, type: 3}
+  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
   _spriteRenderer: {fileID: 4702623508000114870}
@@ -1175,18 +1094,3 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.8, y: 1}
   m_EdgeRadius: 0
---- !u!114 &5867643440964228668
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8723984597966743162}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0809aabf4dcc2d74695fcf77fba35a08, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Feedback.SpriteFlash
-  _flashColor: {r: 1, g: 1, b: 1, a: 1}
-  _flashDuration: 0.05
-  _flashMaterial: {fileID: 0}

@@ -54,6 +54,10 @@ namespace JunkyardClicker.Car
             }
         }
 
+        /// <summary>
+        /// 차량에 데미지 적용
+        /// 주의: 이벤트 발행은 DamageManager가 담당 (단일 책임)
+        /// </summary>
         public int TakeDamage(int damage)
         {
             if (IsDestroyed)
@@ -66,7 +70,7 @@ namespace JunkyardClicker.Car
             if (actualDamage > 0)
             {
                 OnDamageReceived?.Invoke(actualDamage);
-                GameEvents.RaiseDamageDealt(actualDamage);
+                // GameEvents.RaiseDamageDealt 제거 - DamageManager에서만 발행 (중복 방지)
             }
 
             if (IsDestroyed)
@@ -77,6 +81,10 @@ namespace JunkyardClicker.Car
             return actualDamage;
         }
 
+        /// <summary>
+        /// 특정 파츠에 데미지 적용
+        /// 주의: 이벤트 발행은 DamageManager가 담당 (단일 책임)
+        /// </summary>
         public int TakeDamageOnPart(CarPart targetPart, int damage)
         {
             if (IsDestroyed || targetPart == null)
@@ -95,7 +103,7 @@ namespace JunkyardClicker.Car
             if (actualDamage > 0)
             {
                 OnDamageReceived?.Invoke(actualDamage);
-                GameEvents.RaiseDamageDealt(actualDamage);
+                // GameEvents.RaiseDamageDealt 제거 - DamageManager에서만 발행 (중복 방지)
             }
 
             if (IsDestroyed)

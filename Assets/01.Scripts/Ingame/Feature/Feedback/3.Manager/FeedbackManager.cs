@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace JunkyardClicker.Feedback
 {
@@ -185,14 +186,32 @@ namespace JunkyardClicker.Feedback
                 }
             }
 
-            Vector3 mousePosition = UnityEngine.Input.mousePosition;
-            Vector3 worldPosition = _mainCamera.ScreenToWorldPoint(mousePosition);
+            // New Input System 사용
+            Vector2 pointerPosition = GetPointerPosition();
+            Vector3 worldPosition = _mainCamera.ScreenToWorldPoint(new Vector3(pointerPosition.x, pointerPosition.y, 0f));
             worldPosition.z = 0f;
 
             float randomOffsetX = Random.Range(-0.3f, 0.3f);
             float randomOffsetY = Random.Range(-0.2f, 0.2f);
 
             return worldPosition + new Vector3(randomOffsetX, randomOffsetY, 0f);
+        }
+
+        private Vector2 GetPointerPosition()
+        {
+            // 터치 입력 우선
+            if (Touchscreen.current != null && Touchscreen.current.primaryTouch.press.isPressed)
+            {
+                return Touchscreen.current.primaryTouch.position.ReadValue();
+            }
+
+            // 마우스 입력
+            if (Mouse.current != null)
+            {
+                return Mouse.current.position.ReadValue();
+            }
+
+            return Vector2.zero;
         }
     }
 }
