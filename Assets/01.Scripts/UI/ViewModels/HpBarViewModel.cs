@@ -4,7 +4,7 @@ namespace JunkyardClicker.UI.ViewModels
 {
     using JunkyardClicker.Core;
     using JunkyardClicker.UI.MVVM;
-    using Car = JunkyardClicker.Car.Car;
+    using CarEntity = JunkyardClicker.Car.CarEntity;
 
     /// <summary>
     /// HP 바 UI를 위한 ViewModel
@@ -17,7 +17,7 @@ namespace JunkyardClicker.UI.ViewModels
         public Observable<Color> GradeColor { get; } = new Observable<Color>(Color.white);
         public Observable<Color> HpBarColor { get; } = new Observable<Color>(Color.green);
 
-        private Car _currentCar;
+        private CarEntity _currentCar;
 
         public override void Initialize()
         {
@@ -25,7 +25,7 @@ namespace JunkyardClicker.UI.ViewModels
             GameEvents.OnCarSpawned += HandleCarSpawned;
             GameEvents.OnDamageDealt += HandleDamageDealt;
 
-            var existingCar = Object.FindAnyObjectByType<Car>();
+            var existingCar = Object.FindAnyObjectByType<CarEntity>();
             if (existingCar != null)
             {
                 SetCar(existingCar);
@@ -39,7 +39,7 @@ namespace JunkyardClicker.UI.ViewModels
             base.OnDispose();
         }
 
-        private void HandleCarSpawned(Car car)
+        private void HandleCarSpawned(CarEntity car)
         {
             SetCar(car);
         }
@@ -49,7 +49,7 @@ namespace JunkyardClicker.UI.ViewModels
             RefreshHpBar();
         }
 
-        private void SetCar(Car car)
+        private void SetCar(CarEntity car)
         {
             _currentCar = car;
             RefreshCarInfo();

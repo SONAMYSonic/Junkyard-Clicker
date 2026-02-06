@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using JunkyardClicker.Core;
@@ -24,6 +25,10 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
     private Currency[] _currencies = new Currency[(int)ECurrencyType.Count];
 
     private ICurrencyRepository _repository;
+
+    // 데이터 로드 전 발생한 보상 대기열
+    private readonly List<(PartType partType, int amount)> _pendingPartRewards = new();
+    private readonly List<int> _pendingMoneyRewards = new();
 
     /// <summary>
     /// 데이터 로드 완료 여부
@@ -96,6 +101,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
             }
 
             IsDataLoaded = true;
+            ProcessPendingRewards();
             OnDataChanged?.Invoke();
             Debug.Log("[CurrencyManager] 데이터 로드 완료");
         }
@@ -114,37 +120,77 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         }
 
         IsDataLoaded = true;
+        ProcessPendingRewards();
         OnDataChanged?.Invoke();
+    }
+
+    /// <summary>
+    /// 데이터 로드 전 발생한 보상을 처리
+    /// </summary>
+    private void ProcessPendingRewards()
+    {
+        // 대기열이 비어있으면 리턴
+        if (_pendingPartRewards.Count == 0 && _pendingMoneyRewards.Count == 0)
+        {
+            return;
+        }
+
+        // 파츠 보상 처리
+        foreach (var (partType, amount) in _pendingPartRewards)
+        {
+            ECurrencyType currencyType = CurrencyTypeHelper.ToECurrencyType(partType);
+            _currencies[(int)currencyType] += amount;
+        }
+        _pendingPartRewards.Clear();
+
+        // 돈 보상 처리
+        foreach (int reward in _pendingMoneyRewards)
+        {
+            _currencies[(int)ECurrencyType.Money] += reward;
+        }
+        _pendingMoneyRewards.Clear();
+
+        // 대기열 처리 후 저장
+        Save();
     }
 
     private void HandlePartCollected(PartType partType, int amount)
     {
+        // 데이터 로드 전이면 대기열에 추가
+        if (!IsDataLoaded)
+        {
+            _pendingPartRewards.Add((partType, amount));
+            return;
+        }
+
         // PartType을 ECurrencyType으로 변환하여 자원 추가
-        ECurrencyType currencyType = ConvertPartTypeToCurrency(partType);
+        ECurrencyType currencyType = CurrencyTypeHelper.ToECurrencyType(partType);
         Add(currencyType, amount);
     }
 
     private void HandleCarDestroyed(int reward)
     {
+        // 데이터 로드 전이면 대기열에 추가
+        if (!IsDataLoaded)
+        {
+            _pendingMoneyRewards.Add(reward);
+            return;
+        }
+
         // 차량 파괴 보상 (돈)
         Add(ECurrencyType.Money, reward);
     }
 
-    private ECurrencyType ConvertPartTypeToCurrency(PartType partType)
-    {
-        return partType switch
-        {
-            PartType.Scrap => ECurrencyType.Scrap,
-            PartType.Glass => ECurrencyType.Glass,
-            PartType.Plate => ECurrencyType.Plate,
-            PartType.Rubber => ECurrencyType.Rubber,
-            _ => ECurrencyType.Scrap
-        };
-    }
 
     public Currency Get(ECurrencyType currencyType)
     {
-        return _currencies[(int)currencyType];
+        int index = (int)currencyType;
+        if (index < 0 || index >= _currencies.Length)
+        {
+            Debug.LogError($"[CurrencyManager] 잘못된 재화 타입: {currencyType}");
+            return Currency.Zero;
+        }
+        return _currencies[index];
     }
 
     public Currency Money => Get(ECurrencyType.Money);
@@ -155,7 +201,13 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
 
     public void Add(ECurrencyType type, Currency amount)
     {
-        _currencies[(int)type] += amount;
+        int index = (int)type;
+        if (index < 0 || index >= _currencies.Length)
+        {
+            Debug.LogError($"[CurrencyManager] 잘못된 재화 타입: {type}");
+            return;
+        }
+        _currencies[index] += amount;
         Save();
         OnDataChanged?.Invoke();
     }
@@ -167,9 +219,16 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
 
     public bool TrySpend(ECurrencyType type, Currency amount)
     {
-        if (_currencies[(int)type] >= amount)
+        int index = (int)type;
+        if (index < 0 || index >= _currencies.Length)
         {
-            _currencies[(int)type] -= amount;
+            Debug.LogError($"[CurrencyManager] 잘못된 재화 타입: {type}");
+            return false;
+        }
+
+        if (_currencies[index] >= amount)
+        {
+            _currencies[index] -= amount;
             Save();
             OnDataChanged?.Invoke();
             return true;
@@ -180,7 +239,12 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
 
     public bool CanAfford(ECurrencyType type, Currency amount)
     {
-        return _currencies[(int)type] >= amount;
+        int index = (int)type;
+        if (index < 0 || index >= _currencies.Length)
+        {
+            return false;
+        }
+        return _currencies[index] >= amount;
     }
 
     public int SellAllParts()

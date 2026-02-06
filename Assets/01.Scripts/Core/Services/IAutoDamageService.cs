@@ -22,10 +22,5 @@ namespace JunkyardClicker.Core
         /// 틱 간격 (초)
         /// </summary>
         float TickInterval { get; set; }
-
-        /// <summary>
-        /// 타이머 리셋
-        /// </summary>
-        void ResetTimer();
     }
 }

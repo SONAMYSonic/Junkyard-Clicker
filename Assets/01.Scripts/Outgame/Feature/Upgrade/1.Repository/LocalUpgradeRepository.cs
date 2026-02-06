@@ -5,7 +5,7 @@ public class LocalUpgradeRepository : IUpgradeRepository
 {
     private const string KeyPrefix = "Upgrade_";
 
-    public UniTaskVoid Save(UpgradeSaveData saveData)
+    public UniTask Save(UpgradeSaveData saveData)
     {
         for (int i = 0; i < (int)EUpgradeType.Count; i++)
         {

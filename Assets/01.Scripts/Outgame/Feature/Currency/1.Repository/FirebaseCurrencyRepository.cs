@@ -11,7 +11,7 @@ public class FirebaseCurrencyRepository : ICurrencyRepository
     private FirebaseAuth _auth => FirebaseAuth.DefaultInstance;
     private FirebaseFirestore _db => FirebaseFirestore.DefaultInstance;
 
-    public async UniTaskVoid Save(CurrencySaveData saveData)
+    public async UniTask Save(CurrencySaveData saveData)
     {
         try
         {

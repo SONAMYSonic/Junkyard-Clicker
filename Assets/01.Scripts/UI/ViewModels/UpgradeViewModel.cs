@@ -1,4 +1,5 @@
 using System;
+using UnityEngine;
 
 namespace JunkyardClicker.UI.ViewModels
 {
@@ -8,6 +9,7 @@ namespace JunkyardClicker.UI.ViewModels
     /// <summary>
     /// 업그레이드 버튼을 위한 ViewModel
     /// DIP: IUpgradeService, ICurrencyService 인터페이스를 통해 의존성 주입
+    /// 엄격한 MVVM: ServiceLocator를 통한 의존성 주입만 사용
     /// </summary>
     public class UpgradeViewModel : ViewModelBase
     {
@@ -31,81 +33,56 @@ namespace JunkyardClicker.UI.ViewModels
         public override void Initialize()
         {
             base.Initialize();
-            InitializeDependencies();
-            SubscribeEvents();
+
+            if (!ServiceLocator.TryGet<IUpgradeService>(out _upgradeService))
+            {
+                Debug.LogError("[UpgradeViewModel] IUpgradeService를 찾을 수 없습니다.");
+                return;
+            }
+
+            if (!ServiceLocator.TryGet<ICurrencyService>(out _currencyService))
+            {
+                Debug.LogError("[UpgradeViewModel] ICurrencyService를 찾을 수 없습니다.");
+                return;
+            }
+
+            _currencyService.OnDataChanged += RefreshCanUpgrade;
+            _upgradeService.OnUpgraded += RefreshAll;
+
             RefreshAll();
-        }
-
-        private void InitializeDependencies()
-        {
-            ServiceLocator.TryGet(out _upgradeService);
-            ServiceLocator.TryGet(out _currencyService);
-        }
-
-        private void SubscribeEvents()
-        {
-            if (_currencyService != null)
-            {
-                _currencyService.OnDataChanged += RefreshCanUpgrade;
-            }
-            else
-            {
-                CurrencyManager.OnDataChanged += RefreshCanUpgrade;
-            }
-
-            if (_upgradeService != null)
-            {
-                _upgradeService.OnUpgraded += RefreshAll;
-            }
-            else
-            {
-                UpgradeManager.OnUpgraded += RefreshAll;
-            }
         }
 
         protected override void OnDispose()
         {
-            UnsubscribeEvents();
-            base.OnDispose();
-        }
-
-        private void UnsubscribeEvents()
-        {
             if (_currencyService != null)
             {
                 _currencyService.OnDataChanged -= RefreshCanUpgrade;
-            }
-            else
-            {
-                CurrencyManager.OnDataChanged -= RefreshCanUpgrade;
             }
 
             if (_upgradeService != null)
             {
                 _upgradeService.OnUpgraded -= RefreshAll;
             }
-            else
-            {
-                UpgradeManager.OnUpgraded -= RefreshAll;
-            }
+
+            base.OnDispose();
         }
 
         public void RequestUpgrade()
         {
-            if (_upgradeService != null)
+            if (_upgradeService == null)
             {
-                _upgradeService.TryUpgrade(_upgradeType);
-            }
-            else if (UpgradeManager.Instance != null)
-            {
-                UpgradeManager.Instance.TryUpgrade(_upgradeType);
+                Debug.LogError("[UpgradeViewModel] IUpgradeService가 없어 업그레이드할 수 없습니다.");
+                return;
             }
 
+            _upgradeService.TryUpgrade(_upgradeType);
             OnUpgradeRequested?.Invoke();
         }
 
         private void RefreshAll()
         {
+            if (_upgradeService == null || _currencyService == null) return;
+
             RefreshName();
             RefreshLevel();
             RefreshCost();
@@ -125,15 +102,15 @@ namespace JunkyardClicker.UI.ViewModels
 
         private void RefreshLevel()
         {
-            int currentLevel = GetLevel();
-            bool isMaxLevel = IsMaxLevel();
+            int currentLevel = _upgradeService.GetLevel(_upgradeType);
+            bool isMaxLevel = _upgradeService.IsMaxLevel(_upgradeType);
 
             Level.Value = isMaxLevel ? $"Lv.{currentLevel} (MAX)" : $"Lv.{currentLevel}";
         }
 
         private void RefreshCost()
         {
-            bool isMaxLevel = IsMaxLevel();
+            bool isMaxLevel = _upgradeService.IsMaxLevel(_upgradeType);
 
             if (isMaxLevel)
             {
@@ -141,26 +118,32 @@ namespace JunkyardClicker.UI.ViewModels
                 return;
             }
 
-            int cost = GetUpgradeCost();
+            int cost = _upgradeService.GetUpgradeCost(_upgradeType);
             Currency costCurrency = cost;
             Cost.Value = $"${costCurrency}";
         }
 
         private void RefreshEffect()
         {
-            int currentLevel = GetLevel();
+            int currentLevel = _upgradeService.GetLevel(_upgradeType);
 
             Effect.Value = _upgradeType switch
             {
-                EUpgradeType.Tool => $"클릭 데미지: {GetToolDamage(currentLevel)}",
-                EUpgradeType.Worker => $"초당 데미지: {GetWorkerDps(currentLevel)}",
+                EUpgradeType.Tool => $"클릭 데미지: {_upgradeService.GetToolDamage(currentLevel)}",
+                EUpgradeType.Worker => $"초당 데미지: {_upgradeService.GetWorkerDps(currentLevel)}",
                 _ => ""
             };
         }
 
         private void RefreshCanUpgrade()
         {
-            bool isMaxLevel = IsMaxLevel();
+            if (_upgradeService == null || _currencyService == null)
+            {
+                CanUpgrade.Value = false;
+                return;
+            }
+
+            bool isMaxLevel = _upgradeService.IsMaxLevel(_upgradeType);
 
             if (isMaxLevel)
             {
@@ -168,72 +151,8 @@ namespace JunkyardClicker.UI.ViewModels
                 return;
             }
 
-            int cost = GetUpgradeCost();
-            CanUpgrade.Value = CanAfford(cost);
+            int cost = _upgradeService.GetUpgradeCost(_upgradeType);
+            CanUpgrade.Value = _currencyService.CanAfford(ECurrencyType.Money, cost);
         }
-
-        #region Helper Methods (DIP 적용)
-
-        private int GetLevel()
-        {
-            if (_upgradeService != null)
-            {
-                return _upgradeService.GetLevel(_upgradeType);
-            }
-
-            return UpgradeManager.Instance?.GetLevel(_upgradeType) ?? 0;
-        }
-
-        private bool IsMaxLevel()
-        {
-            if (_upgradeService != null)
-            {
-                return _upgradeService.IsMaxLevel(_upgradeType);
-            }
-
-            return UpgradeManager.Instance?.IsMaxLevel(_upgradeType) ?? true;
-        }
-
-        private int GetUpgradeCost()
-        {
-            if (_upgradeService != null)
-            {
-                return _upgradeService.GetUpgradeCost(_upgradeType);
-            }
-
-            return UpgradeManager.Instance?.GetUpgradeCost(_upgradeType) ?? int.MaxValue;
-        }
-
-        private int GetToolDamage(int level)
-        {
-            if (_upgradeService != null)
-            {
-                return _upgradeService.GetToolDamage(level);
-            }
-
-            return UpgradeManager.Instance?.GetToolDamage(level) ?? 1;
-        }
-
-        private int GetWorkerDps(int level)
-        {
-            if (_upgradeService != null)
-            {
-                return _upgradeService.GetWorkerDps(level);
-            }
-
-            return UpgradeManager.Instance?.GetWorkerDps(level) ?? 0;
-        }
-
-        private bool CanAfford(int cost)
-        {
-            if (_currencyService != null)
-            {
-                return _currencyService.CanAfford(ECurrencyType.Money, cost);
-            }
-
-            return CurrencyManager.Instance?.CanAfford(ECurrencyType.Money, cost) ?? false;
-        }
-
-        #endregion
     }
 }

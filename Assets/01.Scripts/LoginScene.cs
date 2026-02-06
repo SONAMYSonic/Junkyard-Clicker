@@ -73,6 +73,13 @@ public class LoginScene : MonoBehaviour
         string email = _emailInputField.text;
         string password = _passwordInputField.text;
 
+        // 비밀번호 길이 검증 (6~15자)
+        if (string.IsNullOrEmpty(password) || password.Length < 6 || password.Length > 15)
+        {
+            _messageTextUI.text = "비밀번호는 6~15자 사이어야 합니다.";
+            return;
+        }
+
         var result = await AccountManager.Instance.TryLogin(email, password);
         if (result.Success)
         {

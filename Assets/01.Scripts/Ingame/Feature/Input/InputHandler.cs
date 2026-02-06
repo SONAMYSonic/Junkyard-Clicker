@@ -9,11 +9,11 @@ namespace JunkyardClicker.Input
     using JunkyardClicker.Resource;
 
     /// <summary>
-    /// 클릭 핸들러
+    /// 입력 핸들러
     /// IInputHandler 인터페이스 구현
     /// 클릭/터치 입력을 감지하고 이벤트 발행
     /// </summary>
-    public class ClickHandler : MonoBehaviour, IInputHandler
+    public class InputHandler : MonoBehaviour, IInputHandler
     {
         [SerializeField]
         private Camera _mainCamera;

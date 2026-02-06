@@ -131,7 +131,7 @@ GameObject:
   - component: {fileID: 61287999}
   - component: {fileID: 61287998}
   - component: {fileID: 61287997}
-  - component: {fileID: 61287996}
+  - component: {fileID: 61288000}
   m_Layer: 0
   m_Name: WorkerUpgradeButton
   m_TagString: Untagged
@@ -162,24 +162,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 82}
   m_SizeDelta: {x: 500, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &61287996
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 61287994}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7c37b6e28388f74cb5a799d0d38392e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.UI.UpgradeButtonUI
-  _upgradeType: 1
-  _button: {fileID: 61287999}
-  _nameText: {fileID: 1226744988}
-  _levelText: {fileID: 660988315}
-  _costText: {fileID: 879270765}
-  _effectText: {fileID: 210188661}
 --- !u!114 &61287997
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -262,6 +244,24 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &61288000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 61287994}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31c4109193117fd42b9a7283e06ddccb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.UI.Views.UpgradeButtonView
+  _upgradeType: 1
+  _button: {fileID: 61287999}
+  _nameText: {fileID: 1226744988}
+  _levelText: {fileID: 660988315}
+  _costText: {fileID: 879270765}
+  _effectText: {fileID: 210188661}
 --- !u!1 &109255100
 GameObject:
   m_ObjectHideFlags: 0
@@ -946,7 +946,7 @@ GameObject:
   - component: {fileID: 340379915}
   - component: {fileID: 340379914}
   - component: {fileID: 340379913}
-  - component: {fileID: 340379912}
+  - component: {fileID: 340379916}
   m_Layer: 0
   m_Name: ToolUpgradeButton
   m_TagString: Untagged
@@ -977,24 +977,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -50}
   m_SizeDelta: {x: 500, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &340379912
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 340379910}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a7c37b6e28388f74cb5a799d0d38392e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.UI.UpgradeButtonUI
-  _upgradeType: 0
-  _button: {fileID: 340379915}
-  _nameText: {fileID: 340145990}
-  _levelText: {fileID: 713901048}
-  _costText: {fileID: 2026115846}
-  _effectText: {fileID: 585050700}
 --- !u!114 &340379913
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1077,6 +1059,24 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &340379916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 340379910}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31c4109193117fd42b9a7283e06ddccb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.UI.Views.UpgradeButtonView
+  _upgradeType: 0
+  _button: {fileID: 340379915}
+  _nameText: {fileID: 340145990}
+  _levelText: {fileID: 713901048}
+  _costText: {fileID: 2026115846}
+  _effectText: {fileID: 585050700}
 --- !u!1 &437356788
 GameObject:
   m_ObjectHideFlags: 0
@@ -1487,9 +1487,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 522644801}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 86420d884957cab41b80debc3bbbb517, type: 3}
+  m_Script: {fileID: 11500000, guid: b0b3c0ec9bd9a064081909d65b6aabd7, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.UI.ResourceUI
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.UI.Views.CurrencyView
   _moneyText: {fileID: 172203839}
   _scrapText: {fileID: 635714499}
   _glassText: {fileID: 437356790}
@@ -1814,9 +1814,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 634044732}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d8a2b652b1b447b4da7ac403a3de14fe, type: 3}
+  m_Script: {fileID: 11500000, guid: 5824a227d1fdfc0448897f0983b75a35, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.UI.HpBarUI
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.UI.Views.HpBarView
   _fillImage: {fileID: 270683355}
   _hpText: {fileID: 2066940519}
   _carNameText: {fileID: 1838235043}
@@ -3163,6 +3163,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6557e904383a39741a164415160c2e43, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::UpgradeManager
+  _config: {fileID: 11400000, guid: 71e74aaec74155b41b6db40db8913dc1, type: 2}
 --- !u!1 &1634455312
 GameObject:
   m_ObjectHideFlags: 0
@@ -3600,7 +3601,7 @@ GameObject:
   - component: {fileID: 1882978554}
   - component: {fileID: 1882978553}
   - component: {fileID: 1882978552}
-  - component: {fileID: 1882978551}
+  - component: {fileID: 1882978555}
   m_Layer: 0
   m_Name: SellButton
   m_TagString: Untagged
@@ -3628,20 +3629,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: -50}
   m_SizeDelta: {x: 500, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1882978551
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1882978549}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4144e15f1fe285a44bc93a59681a9b09, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.UI.SellPartsButtonUI
-  _button: {fileID: 1882978554}
-  _valueText: {fileID: 1249156141}
 --- !u!114 &1882978552
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3724,6 +3711,20 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1882978555
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1882978549}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2913712c69965b4eb5719efedb89654, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.UI.Views.SellPartsButtonView
+  _button: {fileID: 1882978554}
+  _valueText: {fileID: 1249156141}
 --- !u!1 &2026115844
 GameObject:
   m_ObjectHideFlags: 0

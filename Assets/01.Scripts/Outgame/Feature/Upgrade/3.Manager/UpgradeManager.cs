@@ -21,10 +21,8 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
         remove => OnUpgraded -= value;
     }
 
-    private static readonly int[] s_toolDamageTable = new int[] { 1, 3, 8, 15, 30, 60, 120 };
-    private static readonly int[] s_workerDpsTable = new int[] { 0, 1, 3, 8, 20, 50 };
-    private static readonly int[] s_toolCostTable = new int[] { 0, 100, 500, 2000, 10000, 50000, 200000 };
-    private static readonly int[] s_workerCostTable = new int[] { 0, 200, 1000, 5000, 25000, 100000 };
+    [SerializeField]
+    private UpgradeConfig _config;
 
     private int[] _levels = new int[(int)EUpgradeType.Count];
 
@@ -50,6 +48,16 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
 
         // CurrencyService 의존성 - Start에서 다시 시도
         ServiceLocator.TryGet<ICurrencyService>(out _currencyService);
+
+        ValidateConfig();
+    }
+
+    private void ValidateConfig()
+    {
+        if (_config == null)
+        {
+            Debug.LogError("[UpgradeManager] UpgradeConfig가 할당되지 않았습니다! Inspector에서 설정해주세요.");
+        }
     }
 
     private void Start()
@@ -126,68 +134,40 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
 
     public int GetToolDamage(int level)
     {
-        if (level < 0 || level >= s_toolDamageTable.Length)
-        {
-            return s_toolDamageTable[^1];
-        }
-
-        return s_toolDamageTable[level];
+        if (_config == null) return 1;
+        return _config.GetToolDamage(level);
     }
 
     public int GetWorkerDps(int level)
     {
-        if (level < 0 || level >= s_workerDpsTable.Length)
-        {
-            return s_workerDpsTable[^1];
-        }
-
-        return s_workerDpsTable[level];
+        if (_config == null) return 0;
+        return _config.GetWorkerDps(level);
     }
 
     public int GetUpgradeCost(EUpgradeType type)
     {
+        if (_config == null) return int.MaxValue;
+
         int level = _levels[(int)type];
 
         return type switch
         {
-            EUpgradeType.Tool => GetToolUpgradeCost(level),
-            EUpgradeType.Worker => GetWorkerUpgradeCost(level),
+            EUpgradeType.Tool => _config.GetToolUpgradeCost(level),
+            EUpgradeType.Worker => _config.GetWorkerUpgradeCost(level),
             _ => int.MaxValue
         };
     }
 
-    private int GetToolUpgradeCost(int currentLevel)
-    {
-        int nextLevel = currentLevel + 1;
-
-        if (nextLevel >= s_toolCostTable.Length)
-        {
-            return int.MaxValue;
-        }
-
-        return s_toolCostTable[nextLevel];
-    }
-
-    private int GetWorkerUpgradeCost(int currentLevel)
-    {
-        int nextLevel = currentLevel + 1;
-
-        if (nextLevel >= s_workerCostTable.Length)
-        {
-            return int.MaxValue;
-        }
-
-        return s_workerCostTable[nextLevel];
-    }
-
     public bool IsMaxLevel(EUpgradeType type)
     {
+        if (_config == null) return true;
+
         int level = _levels[(int)type];
 
         return type switch
         {
-            EUpgradeType.Tool => level >= s_toolDamageTable.Length - 1,
-            EUpgradeType.Worker => level >= s_workerDpsTable.Length - 1,
+            EUpgradeType.Tool => level >= _config.ToolMaxLevel,
+            EUpgradeType.Worker => level >= _config.WorkerMaxLevel,
             _ => true
         };
     }

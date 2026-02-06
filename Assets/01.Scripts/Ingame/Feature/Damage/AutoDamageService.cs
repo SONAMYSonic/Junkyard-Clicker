@@ -6,11 +6,11 @@ namespace JunkyardClicker.Resource
     using JunkyardClicker.Core;
 
     /// <summary>
-    /// 자동 데미지 핸들러
+    /// 자동 데미지 서비스
     /// IAutoDamageService 인터페이스 구현
     /// 일정 시간마다 자동으로 데미지를 적용
     /// </summary>
-    public class AutoDamageHandler : MonoBehaviour, IAutoDamageService
+    public class AutoDamageService : MonoBehaviour, IAutoDamageService
     {
         [SerializeField]
         private float _tickInterval = 1f;
@@ -73,11 +73,6 @@ namespace JunkyardClicker.Resource
                 _damageManager.ApplyAutoDamage();
                 _tickTimer = 0f;
             }
-        }
-
-        public void ResetTimer()
-        {
-            _tickTimer = 0f;
         }
     }
 }

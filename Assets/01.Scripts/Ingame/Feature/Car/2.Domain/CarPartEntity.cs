@@ -8,7 +8,7 @@ namespace JunkyardClicker.Car
     /// <summary>
     /// 차량 파츠 클래스 - MonoBehaviour와 도메인 로직의 연결
     /// </summary>
-    public class CarPart : MonoBehaviour
+    public class CarPartEntity : MonoBehaviour
     {
         [SerializeField]
         private SpriteRenderer _spriteRenderer;
@@ -21,7 +21,7 @@ namespace JunkyardClicker.Car
         public bool IsDestroyed => _state?.IsDestroyed ?? true;
         public float HpRatio => _state?.HpRatio ?? 0f;
 
-        public event Action<CarPart> OnDestroyed;
+        public event Action<CarPartEntity> OnDestroyed;
 
         public void Initialize(CarPartData data, int carMaxHp)
         {
@@ -41,13 +41,11 @@ namespace JunkyardClicker.Car
 
             if (_data == null)
             {
-                Debug.LogWarning($"CarPart '{gameObject.name}'이 초기화되지 않았습니다.");
+                Debug.LogWarning($"CarPartEntity '{gameObject.name}'이 초기화되지 않았습니다.");
                 return 0;
             }
 
             int actualDamage = _state.ApplyDamage(damage);
-
-            GameEvents.RaisePartDamaged(_data.PartType, _state.CurrentHp);
             UpdateVisual();
 
             if (_state.IsDestroyed)

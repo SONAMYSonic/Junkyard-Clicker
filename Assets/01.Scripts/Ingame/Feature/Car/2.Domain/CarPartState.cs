@@ -15,6 +15,7 @@ namespace JunkyardClicker.Car
 
         public CarPartState(CarPartType partType, int maxHp)
         {
+            Guard.Positive(maxHp, nameof(maxHp));
             PartType = partType;
             MaxHp = maxHp;
             CurrentHp = maxHp;

@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace JunkyardClicker.UI.ViewModels
 {
     using JunkyardClicker.Core;
@@ -21,18 +23,13 @@ namespace JunkyardClicker.UI.ViewModels
         {
             base.Initialize();
 
-            // 인터페이스를 통한 의존성 주입
-            if (ServiceLocator.TryGet<ICurrencyService>(out var service))
+            if (!ServiceLocator.TryGet<ICurrencyService>(out _currencyService))
             {
-                _currencyService = service;
-                _currencyService.OnDataChanged += RefreshAll;
-            }
-            else
-            {
-                // 폴백: 레거시 지원
-                CurrencyManager.OnDataChanged += RefreshAll;
+                Debug.LogError("[CurrencyViewModel] ICurrencyService를 찾을 수 없습니다.");
+                return;
             }
 
+            _currencyService.OnDataChanged += RefreshAll;
             RefreshAll();
         }
 
@@ -42,33 +39,19 @@ namespace JunkyardClicker.UI.ViewModels
             {
                 _currencyService.OnDataChanged -= RefreshAll;
             }
-            else
-            {
-                CurrencyManager.OnDataChanged -= RefreshAll;
-            }
 
             base.OnDispose();
         }
 
         private void RefreshAll()
         {
-            if (_currencyService != null)
-            {
-                Money.Value = _currencyService.Money.ToString();
-                Scrap.Value = _currencyService.Scrap.ToString();
-                Glass.Value = _currencyService.Glass.ToString();
-                Plate.Value = _currencyService.Plate.ToString();
-                Rubber.Value = _currencyService.Rubber.ToString();
-            }
-            else if (CurrencyManager.Instance != null)
-            {
-                // 폴백: 레거시 지원
-                Money.Value = CurrencyManager.Instance.Money.ToString();
-                Scrap.Value = CurrencyManager.Instance.Scrap.ToString();
-                Glass.Value = CurrencyManager.Instance.Glass.ToString();
-                Plate.Value = CurrencyManager.Instance.Plate.ToString();
-                Rubber.Value = CurrencyManager.Instance.Rubber.ToString();
-            }
+            if (_currencyService == null) return;
+
+            Money.Value = _currencyService.Money.ToString();
+            Scrap.Value = _currencyService.Scrap.ToString();
+            Glass.Value = _currencyService.Glass.ToString();
+            Plate.Value = _currencyService.Plate.ToString();
+            Rubber.Value = _currencyService.Rubber.ToString();
         }
     }
 }

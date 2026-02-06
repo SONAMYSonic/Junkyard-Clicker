@@ -9,13 +9,13 @@ namespace JunkyardClicker.Car
     /// <summary>
     /// 차량 클래스 - MonoBehaviour와 도메인 로직의 연결
     /// </summary>
-    public class Car : MonoBehaviour
+    public class CarEntity : MonoBehaviour
     {
         [SerializeField]
         private SpriteRenderer _baseRenderer;
 
         [SerializeField]
-        private List<CarPart> _parts = new List<CarPart>();
+        private List<CarPartEntity> _parts = new List<CarPartEntity>();
 
         private CarData _data;
         private CarState _state;
@@ -26,7 +26,7 @@ namespace JunkyardClicker.Car
         public float HpRatio => _state?.HpRatio ?? 0f;
         public bool IsDestroyed => _state?.IsDestroyed ?? true;
 
-        public event Action<Car, int> OnDestroyed;
+        public event Action<CarEntity, int> OnDestroyed;
         public event Action<int> OnDamageReceived;
 
         public void Initialize(CarData data)
@@ -46,7 +46,7 @@ namespace JunkyardClicker.Car
         {
             for (int i = 0; i < _parts.Count && i < _data.PartDataList.Length; i++)
             {
-                CarPart part = _parts[i];
+                CarPartEntity part = _parts[i];
                 CarPartData partData = _data.PartDataList[i];
 
                 part.Initialize(partData, _data.MaxHp);
@@ -85,7 +85,7 @@ namespace JunkyardClicker.Car
         /// 특정 파츠에 데미지 적용
         /// 주의: 이벤트 발행은 DamageManager가 담당 (단일 책임)
         /// </summary>
-        public int TakeDamageOnPart(CarPart targetPart, int damage)
+        public int TakeDamageOnPart(CarPartEntity targetPart, int damage)
         {
             if (IsDestroyed || targetPart == null)
             {
@@ -114,7 +114,7 @@ namespace JunkyardClicker.Car
             return actualDamage;
         }
 
-        private void HandlePartDestroyed(CarPart part)
+        private void HandlePartDestroyed(CarPartEntity part)
         {
             _state.IncrementDestroyedParts();
             part.OnDestroyed -= HandlePartDestroyed;
@@ -131,7 +131,7 @@ namespace JunkyardClicker.Car
 
         private void DestroyRemainingParts()
         {
-            foreach (CarPart part in _parts)
+            foreach (CarPartEntity part in _parts)
             {
                 if (!part.IsDestroyed)
                 {
@@ -140,9 +140,9 @@ namespace JunkyardClicker.Car
             }
         }
 
-        public CarPart GetPartAtPosition(Vector2 worldPosition)
+        public CarPartEntity GetPartAtPosition(Vector2 worldPosition)
         {
-            foreach (CarPart part in _parts)
+            foreach (CarPartEntity part in _parts)
             {
                 Collider2D partCollider = part.GetComponent<Collider2D>();
                 if (partCollider != null && partCollider.OverlapPoint(worldPosition))
@@ -156,7 +156,7 @@ namespace JunkyardClicker.Car
 
         private void OnDestroy()
         {
-            foreach (CarPart part in _parts)
+            foreach (CarPartEntity part in _parts)
             {
                 if (part != null)
                 {

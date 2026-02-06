@@ -10,10 +10,10 @@ namespace JunkyardClicker.Car
     /// </summary>
     public interface ICarManager
     {
-        event Action<Car> OnCarSpawned;
+        event Action<CarEntity> OnCarSpawned;
         event Action<int> OnCarDestroyed;
 
-        Car CurrentCar { get; }
+        CarEntity CurrentCar { get; }
         bool HasActiveCar { get; }
 
         void SpawnRandomCar();

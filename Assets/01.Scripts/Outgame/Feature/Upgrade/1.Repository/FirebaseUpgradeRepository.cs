@@ -11,7 +11,7 @@ public class FirebaseUpgradeRepository : IUpgradeRepository
     private FirebaseAuth _auth => FirebaseAuth.DefaultInstance;
     private FirebaseFirestore _db => FirebaseFirestore.DefaultInstance;
 
-    public async UniTaskVoid Save(UpgradeSaveData saveData)
+    public async UniTask Save(UpgradeSaveData saveData)
     {
         try
         {

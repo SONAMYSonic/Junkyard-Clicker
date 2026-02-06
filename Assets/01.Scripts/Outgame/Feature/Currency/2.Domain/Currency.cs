@@ -3,6 +3,8 @@ using JunkyardClicker.Core;
 
 public readonly struct Currency
 {
+    public static readonly Currency Zero = new Currency(0);
+
     public readonly double Value;
 
     public Currency(double value)

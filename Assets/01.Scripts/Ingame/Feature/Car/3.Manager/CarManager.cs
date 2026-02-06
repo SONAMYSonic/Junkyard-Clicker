@@ -18,7 +18,7 @@ namespace JunkyardClicker.Car
         private Transform _spawnPoint;
 
         [SerializeField]
-        private Car _carPrefab;
+        private CarEntity _carPrefab;
 
         [SerializeField]
         private CarData[] _carDataList;
@@ -26,13 +26,13 @@ namespace JunkyardClicker.Car
         [SerializeField]
         private float _respawnDelay = 1f;
 
-        private Car _currentCar;
+        private CarEntity _currentCar;
         private CarSpawnSelector _spawnSelector;
 
-        public event Action<Car> OnCarSpawned;
+        public event Action<CarEntity> OnCarSpawned;
         public event Action<int> OnCarDestroyed;
 
-        public Car CurrentCar => _currentCar;
+        public CarEntity CurrentCar => _currentCar;
         public bool HasActiveCar => _currentCar != null && !_currentCar.IsDestroyed;
 
         private void Awake()
@@ -107,7 +107,7 @@ namespace JunkyardClicker.Car
             Debug.Log($"[CarSpawner] 새 차량 스폰: {carData.CarName}");
         }
 
-        private void HandleCarDestroyed(Car car, int reward)
+        private void HandleCarDestroyed(CarEntity car, int reward)
         {
             OnCarDestroyed?.Invoke(reward);
             Invoke(nameof(SpawnRandomCar), _respawnDelay);

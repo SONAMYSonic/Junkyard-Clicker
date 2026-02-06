@@ -5,7 +5,8 @@ namespace JunkyardClicker.Resource
 {
     using JunkyardClicker.Core;
     using JunkyardClicker.Car;
-    using CarEntity = JunkyardClicker.Car.Car;
+    using CarEntity = JunkyardClicker.Car.CarEntity;
+    using CarPartEntity = JunkyardClicker.Car.CarPartEntity;
 
     /// <summary>
     /// 데미지 시스템 매니저
@@ -132,7 +133,7 @@ namespace JunkyardClicker.Resource
 
         private void ApplyDamageAtPosition(CarEntity car, int damage, Vector2 worldPosition)
         {
-            CarPart clickedPart = car.GetPartAtPosition(worldPosition);
+            CarPartEntity clickedPart = car.GetPartAtPosition(worldPosition);
 
             if (clickedPart != null)
             {

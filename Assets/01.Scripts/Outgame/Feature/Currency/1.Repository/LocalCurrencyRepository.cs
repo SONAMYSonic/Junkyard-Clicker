@@ -5,7 +5,7 @@ public class LocalCurrencyRepository : ICurrencyRepository
 {
     private const string KeyPrefix = "Currency_";
 
-    public UniTaskVoid Save(CurrencySaveData saveData)
+    public UniTask Save(CurrencySaveData saveData)
     {
         for (int i = 0; i < (int)ECurrencyType.Count; i++)
         {
