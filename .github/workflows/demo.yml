@@ -91,7 +91,45 @@ jobs:
                     👤 작성자: ${{ github.actor }}
                     🌐 <https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/|플레이하기>
 
-      # 9. 슬랙 알림 (실패)
+      # 9. 빌드 실패 시 → 로그 추출 + Gemini 분석
+      - name: Analyze Failure with Gemini
+        if: failure()
+        id: gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          # 빌드 로그에서 에러 부분만 추출
+          LOG_FILE=$(find . -path "*/build/*.log" -o -path "/github/workspace/*.log" 2>/dev/null | head -1)
+
+          if [ -n "$LOG_FILE" ]; then
+            ERROR_LOG=$(tail -200 "$LOG_FILE" | grep -A 5 -B 2 -i "error\|fatal\|fail\|exception" | head -100)
+          else
+            ERROR_LOG=""
+          fi
+
+          if [ -z "$ERROR_LOG" ]; then
+            ERROR_LOG="빌드 로그 파일을 자동 추출하지 못했습니다. GitHub Actions 로그를 직접 확인해주세요."
+          fi
+
+          # Gemini API 호출
+          ESCAPED_LOG=$(echo "$ERROR_LOG" | jq -Rs .)
+          PROMPT="Unity WebGL 빌드 에러 로그를 분석해줘. 반드시 한국어로 답해줘. 포맷: [원인] 한두 줄 / [해결방법] 한두 줄. 간결하게 200자 이내로.\n\n로그:\n"
+
+          RESPONSE=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$GEMINI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg prompt "$PROMPT" --arg log "$ERROR_LOG" '{
+              contents: [{ parts: [{ text: ($prompt + $log) }] }],
+              generationConfig: { maxOutputTokens: 300 }
+            }')")
+
+          ANALYSIS=$(echo "$RESPONSE" | jq -r '.candidates[0].content.parts[0].text // "AI 분석 실패: API 키를 확인해주세요."' | head -10)
+
+          # GitHub Output에 저장
+          echo "analysis<<ANALYSIS_EOF" >> $GITHUB_OUTPUT
+          echo "$ANALYSIS" >> $GITHUB_OUTPUT
+          echo "ANALYSIS_EOF" >> $GITHUB_OUTPUT
+
+      # 10. 슬랙 알림 (실패 + AI 분석 포함)
       - name: Slack Notification (Failure)
         if: failure()
         uses: slackapi/slack-github-action@v2.1.1
@@ -108,4 +146,14 @@ jobs:
                     🔥 *${{ github.repository }}* 빌드 실패!
                     📝 커밋: ${{ github.event.head_commit.message }}
                     👤 작성자: ${{ github.actor }}
-                    🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|로그 확인>
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: |
+                    🤖 *AI 분석 결과:*
+                    ${{ steps.gemini.outputs.analysis }}
+              - type: section
+                text:
+                  type: mrkdwn
+                  text: |
+                    🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|전체 로그 확인>
