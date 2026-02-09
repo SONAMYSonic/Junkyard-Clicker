@@ -43,6 +43,7 @@ jobs:
 
       # 3. Unity 빌드
       - name: Build WebGL
+        id: unity-build
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -51,6 +52,7 @@ jobs:
         with:
           targetPlatform: WebGL
           buildProfile: "Assets/Settings/Build Profiles/Web-Desktop-Dev - Desktop - Development.asset"
+          customParameters: -logFile /github/workspace/unity-build.log
 
       # 4. 빌드 결과물 업로드 (Artifact)
       - name: Upload Build
@@ -98,52 +100,29 @@ jobs:
               ]
             }' | curl -s -X POST -H "Content-Type: application/json" -d @- "$SLACK_WEBHOOK"
 
-      # 9. 빌드 실패 시 → GitHub Actions API로 빌드 로그 추출 + Gemini 분석
+      # 9. 빌드 실패 시 → Unity 로그 파일에서 추출 + Gemini 분석
       - name: Analyze Failure with Gemini
         if: failure()
         id: gemini
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
-          GH_TOKEN: ${{ github.token }}
         run: |
-          # GitHub Actions API로 빌드 로그 가져오기 (-L로 리다이렉트 따라감)
-          JOBS_JSON=$(curl -s -L -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
-
-          JOB_ID=$(echo "$JOBS_JSON" | jq -r '.jobs[0].id')
-
-          echo "::group::Debug - Job info"
-          echo "JOB_ID: $JOB_ID"
-          echo "::endgroup::"
-
+          # Unity -logFile로 저장된 빌드 로그 읽기
           ERROR_LOG=""
-          if [ "$JOB_ID" != "null" ] && [ -n "$JOB_ID" ]; then
-            # job 로그 다운로드 (-L 필수: GitHub API가 302 리다이렉트 반환)
-            FULL_LOG=$(curl -s -L -H "Authorization: Bearer $GH_TOKEN" \
-              "https://api.github.com/repos/${{ github.repository }}/actions/jobs/$JOB_ID/logs" 2>/dev/null || echo "")
-
-            LOG_LINES=$(echo "$FULL_LOG" | wc -l)
-            echo "::group::Debug - Full log stats"
-            echo "Total log lines: $LOG_LINES"
-            echo "Last 20 lines:"
-            echo "$FULL_LOG" | tail -20
+          if [ -f "unity-build.log" ]; then
+            echo "::group::Debug - unity-build.log found"
+            wc -l unity-build.log
             echo "::endgroup::"
-
-            if [ "$LOG_LINES" -gt 5 ]; then
-              # 에러 라인 추출 + 에러가 없으면 마지막 50줄이라도 보냄
-              ERROR_LOG=$(echo "$FULL_LOG" | grep -A 3 -B 1 -i "error\|fatal\|fail\|exception\|Error CS\|Cannot\|not found\|missing" | tail -80)
-
-              if [ -z "$ERROR_LOG" ]; then
-                ERROR_LOG=$(echo "$FULL_LOG" | tail -50)
-              fi
+            ERROR_LOG=$(grep -A 3 -B 1 -i "error\|fatal\|fail\|exception\|Error CS\|Cannot\|not found" unity-build.log | tail -80)
+            if [ -z "$ERROR_LOG" ]; then
+              ERROR_LOG=$(tail -50 unity-build.log)
             fi
-          fi
-
-          # 로그 파일 폴백
-          if [ -z "$ERROR_LOG" ]; then
+          else
+            echo "::warning::unity-build.log not found, searching for other logs..."
             LOG_FILE=$(find . -name "*.log" -not -path "./.git/*" 2>/dev/null | head -1)
             if [ -n "$LOG_FILE" ]; then
-              ERROR_LOG=$(tail -200 "$LOG_FILE" | grep -A 5 -B 2 -i "error\|fatal\|fail\|exception" | head -80)
+              echo "Found fallback log: $LOG_FILE"
+              ERROR_LOG=$(tail -200 "$LOG_FILE" | grep -A 3 -B 1 -i "error\|fatal\|fail\|exception" | head -80)
             fi
           fi
 
@@ -151,11 +130,11 @@ jobs:
             ERROR_LOG="빌드 로그를 자동 추출하지 못했습니다. GitHub Actions 로그를 직접 확인해주세요."
           fi
 
-          echo "::group::Debug - Final error log sent to Gemini"
+          echo "::group::Debug - Error log sent to Gemini"
           echo "$ERROR_LOG" | head -30
           echo "::endgroup::"
 
-          # API 키 존재 여부 확인
+          # API 키 확인
           if [ -z "$GEMINI_API_KEY" ]; then
             echo "analysis<<ANALYSIS_EOF" >> $GITHUB_OUTPUT
             echo "Gemini API 키가 설정되지 않았습니다. GitHub Secrets에 GEMINI_API_KEY를 추가해주세요." >> $GITHUB_OUTPUT
