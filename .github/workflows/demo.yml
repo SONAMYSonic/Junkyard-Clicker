@@ -50,11 +50,12 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: StandaloneWindows64
+          targetPlatform: WebGL
+          buildProfile: "Assets/Settings/Build Profiles/Web-Desktop-Dev - Desktop - Development.asset"
       
       # 4. 빌드 결과물 업로드
       - name: Upload Build
         uses: actions/upload-artifact@v4
         with:
-          name: Windows-Build
-          path: build/StandaloneWindows64
+          name: WebGL-Build
+          path: build/WebGL
