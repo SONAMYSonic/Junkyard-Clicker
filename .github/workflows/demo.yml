@@ -72,24 +72,30 @@ jobs:
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
 
-      # 8. 슬랙 알림 (성공)
+      # 8. 슬랙 알림 (성공) - curl + jq로 JSON 안전하게 생성
       - name: Slack Notification (Success)
         if: success()
-        uses: slackapi/slack-github-action@v2.1.1
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK }}
-          webhook-type: incoming-webhook
-          payload: |
-            text: "✅ WebGL 빌드 & 배포 성공"
-            blocks:
-              - type: section
-                text:
-                  type: mrkdwn
-                  text: |
-                    ✅ *${{ github.repository }}* 빌드 & 배포 완료!
-                    📝 커밋: ${{ github.event.head_commit.message }}
-                    👤 작성자: ${{ github.actor }}
-                    🌐 <https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/|플레이하기>
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg commit "$COMMIT_MSG" \
+            --arg actor "${{ github.actor }}" \
+            --arg play_url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" \
+            '{
+              text: "✅ WebGL 빌드 & 배포 성공",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: ("✅ *" + $repo + "* 빌드 & 배포 완료!\n📝 커밋: " + ($commit | split("\n")[0]) + "\n👤 작성자: " + $actor + "\n🌐 <" + $play_url + "|플레이하기>")
+                  }
+                }
+              ]
+            }' | curl -s -X POST -H "Content-Type: application/json" -d @- "$SLACK_WEBHOOK"
 
       # 9. 빌드 실패 시 → 로그 추출 + Gemini 분석
       - name: Analyze Failure with Gemini
@@ -112,13 +118,10 @@ jobs:
           fi
 
           # Gemini API 호출
-          ESCAPED_LOG=$(echo "$ERROR_LOG" | jq -Rs .)
-          PROMPT="Unity WebGL 빌드 에러 로그를 분석해줘. 반드시 한국어로 답해줘. 포맷: [원인] 한두 줄 / [해결방법] 한두 줄. 간결하게 200자 이내로.\n\n로그:\n"
-
           RESPONSE=$(curl -s "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$GEMINI_API_KEY" \
             -H "Content-Type: application/json" \
-            -d "$(jq -n --arg prompt "$PROMPT" --arg log "$ERROR_LOG" '{
-              contents: [{ parts: [{ text: ($prompt + $log) }] }],
+            -d "$(jq -n --arg log "$ERROR_LOG" '{
+              contents: [{ parts: [{ text: ("Unity WebGL 빌드 에러 로그를 분석해줘. 반드시 한국어로 답해줘. 포맷: [원인] 한두 줄 / [해결방법] 한두 줄. 간결하게 200자 이내로.\n\n로그:\n" + $log) }] }],
               generationConfig: { maxOutputTokens: 300 }
             }')")
 
@@ -129,31 +132,43 @@ jobs:
           echo "$ANALYSIS" >> $GITHUB_OUTPUT
           echo "ANALYSIS_EOF" >> $GITHUB_OUTPUT
 
-      # 10. 슬랙 알림 (실패 + AI 분석 포함)
+      # 10. 슬랙 알림 (실패 + AI 분석 포함) - curl + jq로 JSON 안전하게 생성
       - name: Slack Notification (Failure)
         if: failure()
-        uses: slackapi/slack-github-action@v2.1.1
-        with:
-          webhook: ${{ secrets.SLACK_WEBHOOK }}
-          webhook-type: incoming-webhook
-          payload: |
-            text: "❌ WebGL 빌드 실패"
-            blocks:
-              - type: section
-                text:
-                  type: mrkdwn
-                  text: |
-                    🔥 *${{ github.repository }}* 빌드 실패!
-                    📝 커밋: ${{ github.event.head_commit.message }}
-                    👤 작성자: ${{ github.actor }}
-              - type: section
-                text:
-                  type: mrkdwn
-                  text: |
-                    🤖 *AI 분석 결과:*
-                    ${{ steps.gemini.outputs.analysis }}
-              - type: section
-                text:
-                  type: mrkdwn
-                  text: |
-                    🔗 <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|전체 로그 확인>
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          ANALYSIS: ${{ steps.gemini.outputs.analysis }}
+        run: |
+          jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg commit "$COMMIT_MSG" \
+            --arg actor "${{ github.actor }}" \
+            --arg analysis "$ANALYSIS" \
+            --arg log_url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            '{
+              text: "❌ WebGL 빌드 실패",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: ("🔥 *" + $repo + "* 빌드 실패!\n📝 커밋: " + ($commit | split("\n")[0]) + "\n👤 작성자: " + $actor)
+                  }
+                },
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: ("🤖 *AI 분석 결과:*\n" + $analysis)
+                  }
+                },
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: ("🔗 <" + $log_url + "|전체 로그 확인>")
+                  }
+                }
+              ]
+            }' | curl -s -X POST -H "Content-Type: application/json" -d @- "$SLACK_WEBHOOK"
