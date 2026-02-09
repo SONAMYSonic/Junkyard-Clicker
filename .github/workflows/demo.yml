@@ -111,7 +111,8 @@ jobs:
 
           # 폴백: 실패 스텝 정보 + GitHub Actions 로그 링크를 Gemini에 전달
           if [ -z "$ERROR_LOG" ]; then
-            ERROR_LOG="Unity WebGL 빌드가 실패했습니다.
+            ERROR_LOG=$(cat <<FALLBACK_EOF
+Unity WebGL 빌드가 실패했습니다.
 실패한 스텝 정보:
 $FAILED_STEPS
 
@@ -120,7 +121,9 @@ WebGL 타겟 플랫폼으로 빌드를 시도했습니다.
 빌드 프로파일: Assets/Settings/Build Profiles/Web-Desktop-Dev - Desktop - Development.asset
 
 로그 파일을 직접 추출할 수 없어 상세 에러 메시지는 확인되지 않았습니다.
-일반적인 Unity WebGL 빌드 실패 원인을 분석해주세요."
+일반적인 Unity WebGL 빌드 실패 원인을 분석해주세요.
+FALLBACK_EOF
+            )
           fi
 
           echo "::group::Debug - Error log sent to Gemini"
