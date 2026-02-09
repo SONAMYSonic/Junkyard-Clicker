@@ -54,7 +54,7 @@ jobs:
           targetPlatform: WebGL
           buildProfile: "Assets/Settings/Build Profiles/Web-Desktop-Dev - Desktop - Development.asset"
 
-      # 4. 빌드 실패 시 → 로그 추출 + Gemini 분석
+      # 4. 빌드 실패 시 → Gemini 분석
       - name: Analyze Failure with Gemini
         if: steps.unity-build.outcome == 'failure'
         id: gemini
@@ -64,33 +64,16 @@ jobs:
         run: |
           ERROR_LOG=""
 
-          # 방법 1: GitHub Actions API로 완료된 스텝의 annotation(에러 메시지) 가져오기
-          echo "Fetching annotations..."
-          ANNOTATIONS=$(curl -s -L -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/check-runs?check_suite_id=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" | jq -r '.check_suite_id')" 2>/dev/null || echo "")
-
-          # 방법 2: 실패 스텝의 에러 메시지를 Actions API의 jobs 엔드포인트에서 가져오기
+          # 실패한 스텝 정보 가져오기
           JOBS_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
-
-          # 실패한 스텝들의 이름과 결론 추출
           FAILED_STEPS=$(echo "$JOBS_JSON" | jq -r '.jobs[0].steps[] | select(.conclusion == "failure") | "Step: \(.name) - Status: \(.conclusion)"')
-
           echo "::group::Debug - Failed steps"
           echo "$FAILED_STEPS"
           echo "::endgroup::"
 
-          # 방법 3: workspace 전체에서 Unity Editor.log 검색 (game-ci가 복사해둘 수 있음)
+          # Unity 로그 파일 검색
           echo "Searching for Unity logs..."
-          find "$GITHUB_WORKSPACE" /home/runner -maxdepth 5 \
-            \( -name "Editor.log" -o -name "unity-build.log" -o -name "*.log" \) \
-            -size +1k -not -path "*/.git/*" -not -path "*/Packages-Update*" \
-            2>/dev/null | while read f; do
-            echo "  Found: $f ($(wc -l < "$f") lines)"
-          done
-
-          # Unity Editor.log 경로 (game-ci가 workspace에 복사하는 경우)
           for logpath in \
             "$GITHUB_WORKSPACE/unity-build.log" \
             "$GITHUB_WORKSPACE/build/WebGL/build.log" \
@@ -109,31 +92,32 @@ jobs:
             fi
           done
 
-          # 폴백: 실패 스텝 정보 + GitHub Actions 로그 링크를 Gemini에 전달
+          # find로 추가 탐색
           if [ -z "$ERROR_LOG" ]; then
-            ERROR_LOG=$(cat <<FALLBACK_EOF
-Unity WebGL 빌드가 실패했습니다.
-실패한 스텝 정보:
-$FAILED_STEPS
+            LOG_FILE=$(find "$GITHUB_WORKSPACE" /home/runner -maxdepth 5 -name "*.log" -size +1k \
+              -not -path "*/.git/*" -not -name "Packages-Update*" 2>/dev/null | head -1)
+            if [ -n "$LOG_FILE" ]; then
+              echo "Found: $LOG_FILE"
+              ERROR_LOG=$(grep -A 3 -B 1 -i "error\|fatal\|exception" "$LOG_FILE" | tail -80)
+              if [ -z "$ERROR_LOG" ]; then
+                ERROR_LOG=$(tail -50 "$LOG_FILE")
+              fi
+            fi
+          fi
 
-이 빌드는 game-ci/unity-builder@v4 GitHub Action을 사용하고 있으며,
-WebGL 타겟 플랫폼으로 빌드를 시도했습니다.
-빌드 프로파일: Assets/Settings/Build Profiles/Web-Desktop-Dev - Desktop - Development.asset
-
-로그 파일을 직접 추출할 수 없어 상세 에러 메시지는 확인되지 않았습니다.
-일반적인 Unity WebGL 빌드 실패 원인을 분석해주세요.
-FALLBACK_EOF
-            )
+          # 폴백: 실패 스텝 정보를 Gemini에 전달
+          if [ -z "$ERROR_LOG" ]; then
+            ERROR_LOG="Unity WebGL 빌드가 실패했습니다. 실패한 스텝: ${FAILED_STEPS:-Build WebGL}. game-ci/unity-builder@v4 사용. 빌드 프로파일: Web-Desktop-Dev. 로그 파일을 추출할 수 없어 상세 에러 메시지는 확인되지 않았습니다. 일반적인 Unity WebGL 빌드 실패 원인을 분석해주세요."
           fi
 
           echo "::group::Debug - Error log sent to Gemini"
-          echo "$ERROR_LOG" | head -40
+          echo "$ERROR_LOG" | head -30
           echo "::endgroup::"
 
           # API 키 확인
           if [ -z "$GEMINI_API_KEY" ]; then
             echo "analysis<<ANALYSIS_EOF" >> $GITHUB_OUTPUT
-            echo "Gemini API 키가 설정되지 않았습니다. GitHub Secrets에 GEMINI_API_KEY를 추가해주세요." >> $GITHUB_OUTPUT
+            echo "Gemini API 키가 미설정. GitHub Secrets에 GEMINI_API_KEY를 추가해주세요." >> $GITHUB_OUTPUT
             echo "ANALYSIS_EOF" >> $GITHUB_OUTPUT
             exit 0
           fi
