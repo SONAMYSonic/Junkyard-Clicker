@@ -1,3 +1,4 @@
+#if !UNITY_WEBGL
 using System;
 using Cysharp.Threading.Tasks;
 using Firebase.Auth;
@@ -51,3 +52,4 @@ public class FirebaseUpgradeRepository : IUpgradeRepository
         }
     }
 }
+#endif

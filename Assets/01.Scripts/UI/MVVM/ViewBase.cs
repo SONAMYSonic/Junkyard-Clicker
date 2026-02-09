@@ -7,17 +7,33 @@ namespace JunkyardClicker.UI.MVVM
     {
         protected TViewModel ViewModel { get; private set; }
 
+        private bool _isInitialized;
+
         // ViewModel 생성
         protected virtual void Awake()
         {
             ViewModel = CreateViewModel();
         }
 
-        // ViewModel 초기화 및 바인딩
+        // Start에서 초기화 (모든 Awake 완료 후 실행되므로 서비스 등록 보장)
+        protected virtual void Start()
+        {
+            if (!_isInitialized)
+            {
+                _isInitialized = true;
+                ViewModel?.Initialize();
+                BindViewModel();
+            }
+        }
+
+        // 재활성화 시 바인딩 복원
         protected virtual void OnEnable()
         {
-            ViewModel?.Initialize();
-            BindViewModel();
+            if (_isInitialized)
+            {
+                ViewModel?.Initialize();
+                BindViewModel();
+            }
         }
 
         // 바인딩 해제

@@ -3,7 +3,10 @@
     "allow": [
       "mcp__unityMCP__find_gameobjects",
       "Bash(dir:*)",
-      "mcp__unityMCP__manage_prefabs"
+      "mcp__unityMCP__manage_prefabs",
+      "Bash(git log:*)",
+      "mcp__unityMCP__execute_menu_item",
+      "Bash(grep:*)"
     ]
   }
 }

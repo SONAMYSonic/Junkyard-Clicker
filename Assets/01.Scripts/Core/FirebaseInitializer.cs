@@ -1,6 +1,8 @@
 using System;
 using Cysharp.Threading.Tasks;
+#if !UNITY_WEBGL
 using Firebase;
+#endif
 using UnityEngine;
 
 // Firebase 초기화 담당
@@ -38,6 +40,14 @@ public class FirebaseInitializer : MonoBehaviour
     // Firebase 비동기 초기화
     private async UniTask InitFirebase()
     {
+#if UNITY_WEBGL
+        // WebGL에서는 Firebase를 사용하지 않고 로컬 모드로 동작
+        IsAvailable = false;
+        IsInitialized = true;
+        _initializationSource.TrySetResult();
+        Debug.Log("[FirebaseInitializer] WebGL 빌드 - 로컬 모드로 동작");
+        await UniTask.CompletedTask;
+#else
         try
         {
             DependencyStatus status = await FirebaseApp.CheckAndFixDependenciesAsync().AsUniTask();
@@ -71,6 +81,7 @@ public class FirebaseInitializer : MonoBehaviour
             _initializationSource.TrySetResult();
             Debug.LogError($"[FirebaseInitializer] 초기화 예외: {e.Message}");
         }
+#endif
     }
 
     // 초기화 상태 리셋 (테스트용)

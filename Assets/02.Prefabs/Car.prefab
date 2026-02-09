@@ -9,7 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 6425482843205707476}
-  - component: {fileID: 1691145325165923497}
+  - component: {fileID: 2321506244965884430}
   m_Layer: 0
   m_Name: Car
   m_TagString: Untagged
@@ -34,7 +34,7 @@ Transform:
   - {fileID: 1679824838549235425}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1691145325165923497
+--- !u!114 &2321506244965884430
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -43,17 +43,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 560545264181817191}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 78265a3d15f29964d801083414a837dd, type: 3}
+  m_Script: {fileID: 11500000, guid: 878c4846856346a44a34f8b9c229a766, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.Car
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarEntity
   _baseRenderer: {fileID: 219757523597255529}
   _parts:
-  - {fileID: 8231728285337210716}
-  - {fileID: 6283384889936805138}
-  - {fileID: 2074611283571781805}
-  - {fileID: 8998109440083310351}
-  - {fileID: 291293021479093811}
-  - {fileID: 3137136290725526474}
+  - {fileID: 703216170313510547}
+  - {fileID: 1359885209085006499}
+  - {fileID: 2131258446253066516}
+  - {fileID: 4432641230183038575}
+  - {fileID: 3917323869153632571}
+  - {fileID: 8724408968855774960}
 --- !u!1 &1480267312297042180
 GameObject:
   m_ObjectHideFlags: 0
@@ -154,9 +154,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1108727315715598712}
-  - component: {fileID: 8998109440083310351}
   - component: {fileID: 204816837262906655}
   - component: {fileID: 894871853426904824}
+  - component: {fileID: 4432641230183038575}
   m_Layer: 0
   m_Name: DoorRight
   m_TagString: Untagged
@@ -179,19 +179,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1679824838549235425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8998109440083310351
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5397292873317680172}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 204816837262906655}
 --- !u!212 &204816837262906655
 SpriteRenderer:
   serializedVersion: 2
@@ -297,6 +284,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.8, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &4432641230183038575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5397292873317680172}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afcc255397a6a3f4b81b5ae6ffffa36d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPartEntity
+  _spriteRenderer: {fileID: 204816837262906655}
 --- !u!1 &5430488829142752107
 GameObject:
   m_ObjectHideFlags: 0
@@ -343,9 +343,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7576770244568307279}
-  - component: {fileID: 8231728285337210716}
   - component: {fileID: 6247499704684329814}
   - component: {fileID: 7922434234385626299}
+  - component: {fileID: 703216170313510547}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -368,19 +368,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1679824838549235425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8231728285337210716
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5632877315563165246}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 6247499704684329814}
 --- !u!212 &6247499704684329814
 SpriteRenderer:
   serializedVersion: 2
@@ -486,6 +473,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &703216170313510547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5632877315563165246}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afcc255397a6a3f4b81b5ae6ffffa36d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPartEntity
+  _spriteRenderer: {fileID: 6247499704684329814}
 --- !u!1 &6398537514250974744
 GameObject:
   m_ObjectHideFlags: 0
@@ -495,9 +495,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 657467716313238261}
-  - component: {fileID: 3137136290725526474}
   - component: {fileID: 4259795893435319487}
   - component: {fileID: 5931220810353130574}
+  - component: {fileID: 8724408968855774960}
   m_Layer: 0
   m_Name: Trunk
   m_TagString: Untagged
@@ -520,19 +520,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1679824838549235425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3137136290725526474
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6398537514250974744}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 4259795893435319487}
 --- !u!212 &4259795893435319487
 SpriteRenderer:
   serializedVersion: 2
@@ -638,6 +625,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1, y: 0.8}
   m_EdgeRadius: 0
+--- !u!114 &8724408968855774960
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6398537514250974744}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afcc255397a6a3f4b81b5ae6ffffa36d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPartEntity
+  _spriteRenderer: {fileID: 4259795893435319487}
 --- !u!1 &6863310186487414832
 GameObject:
   m_ObjectHideFlags: 0
@@ -647,9 +647,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2343455427031351809}
-  - component: {fileID: 6283384889936805138}
   - component: {fileID: 3618366692862489435}
   - component: {fileID: 6654905500059785791}
+  - component: {fileID: 1359885209085006499}
   m_Layer: 0
   m_Name: Windshield
   m_TagString: Untagged
@@ -672,19 +672,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1679824838549235425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &6283384889936805138
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6863310186487414832}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 3618366692862489435}
 --- !u!212 &3618366692862489435
 SpriteRenderer:
   serializedVersion: 2
@@ -790,6 +777,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.2, y: 0.6}
   m_EdgeRadius: 0
+--- !u!114 &1359885209085006499
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6863310186487414832}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afcc255397a6a3f4b81b5ae6ffffa36d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPartEntity
+  _spriteRenderer: {fileID: 3618366692862489435}
 --- !u!1 &6921474319971987599
 GameObject:
   m_ObjectHideFlags: 0
@@ -799,9 +799,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7546146291168118799}
-  - component: {fileID: 291293021479093811}
   - component: {fileID: 879563278173192925}
   - component: {fileID: 7183114956240396518}
+  - component: {fileID: 3917323869153632571}
   m_Layer: 0
   m_Name: Hood
   m_TagString: Untagged
@@ -824,19 +824,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1679824838549235425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &291293021479093811
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6921474319971987599}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 879563278173192925}
 --- !u!212 &879563278173192925
 SpriteRenderer:
   serializedVersion: 2
@@ -942,6 +929,19 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 1.5, y: 0.8}
   m_EdgeRadius: 0
+--- !u!114 &3917323869153632571
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6921474319971987599}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afcc255397a6a3f4b81b5ae6ffffa36d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPartEntity
+  _spriteRenderer: {fileID: 879563278173192925}
 --- !u!1 &8723984597966743162
 GameObject:
   m_ObjectHideFlags: 0
@@ -951,9 +951,9 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5692121185683379360}
-  - component: {fileID: 2074611283571781805}
   - component: {fileID: 4702623508000114870}
   - component: {fileID: 8486195285669545707}
+  - component: {fileID: 2131258446253066516}
   m_Layer: 0
   m_Name: DoorLeft
   m_TagString: Untagged
@@ -976,19 +976,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 1679824838549235425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2074611283571781805
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8723984597966743162}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5262b36c2a9525f429f89e4f74e7a336, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPart
-  _spriteRenderer: {fileID: 4702623508000114870}
 --- !u!212 &4702623508000114870
 SpriteRenderer:
   serializedVersion: 2
@@ -1094,3 +1081,16 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.8, y: 1}
   m_EdgeRadius: 0
+--- !u!114 &2131258446253066516
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8723984597966743162}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afcc255397a6a3f4b81b5ae6ffffa36d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarPartEntity
+  _spriteRenderer: {fileID: 4702623508000114870}

@@ -37,7 +37,11 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
     private void Awake()
     {
         Instance = this;
+#if UNITY_WEBGL
+        _repository = new LocalUpgradeRepository();
+#else
         _repository = new FirebaseUpgradeRepository();
+#endif
         ServiceLocator.Register<IUpgradeService>(this);
 
         // CurrencyService 의존성 - Start에서 다시 시도

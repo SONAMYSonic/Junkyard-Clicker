@@ -37,7 +37,7 @@ public class LocalAccountRepository : IAccountRepository
         return new UniTask<AccountResult>(new AccountResult
         {
             Success = true,
-            Account = new Account(email, hashedPassword),
+            Account = new Account(email, password),
         });
     }
 
@@ -70,7 +70,7 @@ public class LocalAccountRepository : IAccountRepository
         return new UniTask<AccountResult>(new AccountResult
         {
             Success = true,
-            Account = new Account(email, savedHashedPassword),
+            Account = new Account(email, password),
         });
     }
 

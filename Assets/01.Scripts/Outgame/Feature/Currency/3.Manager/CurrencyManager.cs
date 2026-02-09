@@ -32,7 +32,11 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
     private void Awake()
     {
         Instance = this;
+#if UNITY_WEBGL
+        _repository = new LocalCurrencyRepository();
+#else
         _repository = new FirebaseCurrencyRepository();
+#endif
         ServiceLocator.Register<ICurrencyService>(this);
     }
 

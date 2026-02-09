@@ -3113,7 +3113,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JunkyardClicker.Car.CarSpawner
   _spawnPoint: {fileID: 1736594214}
-  _carPrefab: {fileID: 1691145325165923497, guid: 9415a3aac2fbad84e93e63437843dd5f, type: 3}
+  _carPrefab: {fileID: 2321506244965884430, guid: 9415a3aac2fbad84e93e63437843dd5f, type: 3}
   _carDataList:
   - {fileID: 11400000, guid: d3b6a836af58a094cbcda777f2315ee1, type: 2}
   - {fileID: 11400000, guid: facde86bd4242a34ca1470f955a9c353, type: 2}
