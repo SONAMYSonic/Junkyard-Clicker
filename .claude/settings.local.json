@@ -7,7 +7,9 @@
       "Bash(git log:*)",
       "mcp__unityMCP__execute_menu_item",
       "Bash(grep:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)"
     ]
   }
 }

@@ -91,7 +91,7 @@ jobs:
                   type: "section",
                   text: {
                     type: "mrkdwn",
-                    text: ("✅ *" + $repo + "* 빌드 & 배포 완료!\n📝 커밋: " + ($commit | split("\n")[0]) + "\n👤 작성자: " + $actor + "\n🌐 <" + $play_url + "|플레이하기>")
+                    text: ("✅ *" + $repo + "* 빌드 & 배포 완료!\n📝 커밋: " + ($commit | split("\n")[0]) + "\n👤 작성자: " + $actor + (노민균) + "\n🌐 <" + $play_url + "|플레이하기>")
                   }
                 }
               ]
@@ -150,7 +150,7 @@ jobs:
           }')
 
           RESPONSE=$(curl -s -w "\n%{http_code}" \
-            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=$GEMINI_API_KEY" \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$GEMINI_API_KEY" \
             -H "Content-Type: application/json" \
             -d "$REQUEST_BODY")
 
