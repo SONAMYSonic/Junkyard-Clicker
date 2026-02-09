@@ -54,7 +54,7 @@ jobs:
           targetPlatform: WebGL
           buildProfile: "Assets/Settings/Build Profiles/Web-Desktop-Dev - Desktop - Development.asset"
 
-      # 4. 빌드 실패 시 → Gemini 분석
+      # 4. 빌드 실패 시 → 로그 추출 + Gemini 분석
       - name: Analyze Failure with Gemini
         if: steps.unity-build.outcome == 'failure'
         id: gemini
@@ -62,19 +62,46 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          # 현재 run의 빌드 job 로그를 GitHub API로 가져오기
-          # continue-on-error 덕분에 job이 아직 running이지만, 이전 스텝 로그는 접근 가능
-
-          # 방법 1: Docker 빌드 로그 파일 탐색
           ERROR_LOG=""
-          for candidate in \
-            /home/runner/work/_temp/*.log \
-            /home/runner/work/**/*.log \
-            ./*.log; do
-            found=$(ls $candidate 2>/dev/null | head -1)
-            if [ -n "$found" ]; then
-              echo "Found log: $found ($(wc -l < "$found") lines)"
-              CONTENT=$(grep -A 3 -B 1 -i "error\|fatal\|exception\|Error CS" "$found" | tail -80)
+
+          # 방법 1: GitHub Actions API로 완료된 스텝의 annotation(에러 메시지) 가져오기
+          echo "Fetching annotations..."
+          ANNOTATIONS=$(curl -s -L -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/check-runs?check_suite_id=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}" | jq -r '.check_suite_id')" 2>/dev/null || echo "")
+
+          # 방법 2: 실패 스텝의 에러 메시지를 Actions API의 jobs 엔드포인트에서 가져오기
+          JOBS_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
+
+          # 실패한 스텝들의 이름과 결론 추출
+          FAILED_STEPS=$(echo "$JOBS_JSON" | jq -r '.jobs[0].steps[] | select(.conclusion == "failure") | "Step: \(.name) - Status: \(.conclusion)"')
+
+          echo "::group::Debug - Failed steps"
+          echo "$FAILED_STEPS"
+          echo "::endgroup::"
+
+          # 방법 3: workspace 전체에서 Unity Editor.log 검색 (game-ci가 복사해둘 수 있음)
+          echo "Searching for Unity logs..."
+          find "$GITHUB_WORKSPACE" /home/runner -maxdepth 5 \
+            \( -name "Editor.log" -o -name "unity-build.log" -o -name "*.log" \) \
+            -size +1k -not -path "*/.git/*" -not -path "*/Packages-Update*" \
+            2>/dev/null | while read f; do
+            echo "  Found: $f ($(wc -l < "$f") lines)"
+          done
+
+          # Unity Editor.log 경로 (game-ci가 workspace에 복사하는 경우)
+          for logpath in \
+            "$GITHUB_WORKSPACE/unity-build.log" \
+            "$GITHUB_WORKSPACE/build/WebGL/build.log" \
+            "$HOME/.config/unity3d/Editor.log" \
+            "$GITHUB_WORKSPACE/Library/EditorLog.log"; do
+            if [ -f "$logpath" ] && [ -s "$logpath" ]; then
+              echo "Reading: $logpath"
+              CONTENT=$(grep -A 3 -B 1 -i "error\|fatal\|exception\|Error CS" "$logpath" | tail -80)
+              if [ -z "$CONTENT" ]; then
+                CONTENT=$(tail -50 "$logpath")
+              fi
               if [ -n "$CONTENT" ]; then
                 ERROR_LOG="$CONTENT"
                 break
@@ -82,35 +109,22 @@ jobs:
             fi
           done
 
-          # 방법 2: docker logs에서 가져오기
+          # 폴백: 실패 스텝 정보 + GitHub Actions 로그 링크를 Gemini에 전달
           if [ -z "$ERROR_LOG" ]; then
-            echo "Trying docker logs..."
-            CONTAINER_ID=$(docker ps -aq --latest 2>/dev/null || echo "")
-            if [ -n "$CONTAINER_ID" ]; then
-              DOCKER_LOG=$(docker logs "$CONTAINER_ID" 2>&1 | tail -300)
-              ERROR_LOG=$(echo "$DOCKER_LOG" | grep -A 3 -B 1 -i "error\|fatal\|exception\|Error CS" | tail -80)
-              if [ -z "$ERROR_LOG" ]; then
-                ERROR_LOG=$(echo "$DOCKER_LOG" | tail -50)
-              fi
-            fi
-          fi
+            ERROR_LOG="Unity WebGL 빌드가 실패했습니다.
+실패한 스텝 정보:
+$FAILED_STEPS
 
-          # 방법 3: find로 전체 탐색
-          if [ -z "$ERROR_LOG" ]; then
-            echo "Searching all log files..."
-            LOG_FILE=$(find /home/runner /github -name "*.log" -size +0 2>/dev/null | head -1)
-            if [ -n "$LOG_FILE" ]; then
-              echo "Found: $LOG_FILE"
-              ERROR_LOG=$(grep -A 3 -B 1 -i "error\|fatal\|exception" "$LOG_FILE" | tail -80)
-            fi
-          fi
+이 빌드는 game-ci/unity-builder@v4 GitHub Action을 사용하고 있으며,
+WebGL 타겟 플랫폼으로 빌드를 시도했습니다.
+빌드 프로파일: Assets/Settings/Build Profiles/Web-Desktop-Dev - Desktop - Development.asset
 
-          if [ -z "$ERROR_LOG" ]; then
-            ERROR_LOG="빌드 로그를 자동 추출하지 못했습니다. GitHub Actions의 'Build WebGL' 스텝 로그를 직접 확인해주세요."
+로그 파일을 직접 추출할 수 없어 상세 에러 메시지는 확인되지 않았습니다.
+일반적인 Unity WebGL 빌드 실패 원인을 분석해주세요."
           fi
 
           echo "::group::Debug - Error log sent to Gemini"
-          echo "$ERROR_LOG" | head -30
+          echo "$ERROR_LOG" | head -40
           echo "::endgroup::"
 
           # API 키 확인
