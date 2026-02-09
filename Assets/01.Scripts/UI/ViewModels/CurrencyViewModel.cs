@@ -5,10 +5,7 @@ namespace JunkyardClicker.UI.ViewModels
     using JunkyardClicker.Core;
     using JunkyardClicker.UI.MVVM;
 
-    /// <summary>
-    /// 재화 UI를 위한 ViewModel
-    /// DIP: ICurrencyService 인터페이스를 통해 의존성 주입
-    /// </summary>
+    // 재화 UI를 위한 ViewModel
     public class CurrencyViewModel : ViewModelBase
     {
         private ICurrencyService _currencyService;
@@ -19,6 +16,7 @@ namespace JunkyardClicker.UI.ViewModels
         public Observable<string> Plate { get; } = new Observable<string>("0");
         public Observable<string> Rubber { get; } = new Observable<string>("0");
 
+        // 초기화 및 이벤트 구독
         public override void Initialize()
         {
             base.Initialize();
@@ -33,6 +31,7 @@ namespace JunkyardClicker.UI.ViewModels
             RefreshAll();
         }
 
+        // 이벤트 구독 해제
         protected override void OnDispose()
         {
             if (_currencyService != null)
@@ -43,6 +42,7 @@ namespace JunkyardClicker.UI.ViewModels
             base.OnDispose();
         }
 
+        // 모든 재화 표시 갱신
         private void RefreshAll()
         {
             if (_currencyService == null) return;

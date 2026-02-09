@@ -4,11 +4,10 @@ namespace JunkyardClicker.Car
 {
     using JunkyardClicker.Core;
 
-    /// <summary>
-    /// 차량 보상 계산 로직을 담당하는 도메인 서비스
-    /// </summary>
+    // 차량 보상 계산 도메인 서비스
     public static class CarRewardCalculator
     {
+        // 차량 파괴 보상 계산
         public static int CalculateReward(CarData carData)
         {
             if (carData == null)
@@ -20,6 +19,7 @@ namespace JunkyardClicker.Car
             return Mathf.RoundToInt(carData.BaseReward * gradeMultiplier);
         }
 
+        // 등급별 보상 배율 반환
         public static float GetGradeMultiplier(CarGrade grade)
         {
             return grade switch

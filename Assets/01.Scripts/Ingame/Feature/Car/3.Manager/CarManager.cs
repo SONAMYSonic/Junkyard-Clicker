@@ -5,11 +5,7 @@ namespace JunkyardClicker.Car
 {
     using JunkyardClicker.Core;
 
-    /// <summary>
-    /// 차량 스폰 매니저
-    /// 차량 스폰과 현재 차량 관리만 담당 (SRP)
-    /// 데미지 처리는 DamageManager가 담당
-    /// </summary>
+    // 차량 스폰 매니저 - 차량 스폰과 현재 차량 관리만 담당
     public class CarSpawner : MonoBehaviour, ICarManager
     {
         public static CarSpawner Instance { get; private set; }
@@ -35,6 +31,7 @@ namespace JunkyardClicker.Car
         public CarEntity CurrentCar => _currentCar;
         public bool HasActiveCar => _currentCar != null && !_currentCar.IsDestroyed;
 
+        // 싱글톤 설정 및 서비스 등록
         private void Awake()
         {
             SetupSingleton();
@@ -42,6 +39,7 @@ namespace JunkyardClicker.Car
             ServiceLocator.Register<ICarManager>(this);
         }
 
+        // 싱글톤 인스턴스 설정
         private void SetupSingleton()
         {
             if (Instance != null && Instance != this)
@@ -53,11 +51,13 @@ namespace JunkyardClicker.Car
             Instance = this;
         }
 
+        // 첫 차량 스폰
         private void Start()
         {
             SpawnRandomCar();
         }
 
+        // 오브젝트 파괴 시 정리
         private void OnDestroy()
         {
             if (Instance == this)
@@ -67,6 +67,7 @@ namespace JunkyardClicker.Car
             }
         }
 
+        // 랜덤 차량 스폰
         public void SpawnRandomCar()
         {
             CarData selectedData = _spawnSelector.SelectRandom();
@@ -80,6 +81,7 @@ namespace JunkyardClicker.Car
             SpawnCar(selectedData);
         }
 
+        // 특정 데이터로 차량 스폰
         public void SpawnCar(CarData carData)
         {
             if (_currentCar != null)
@@ -107,6 +109,7 @@ namespace JunkyardClicker.Car
             Debug.Log($"[CarSpawner] 새 차량 스폰: {carData.CarName}");
         }
 
+        // 차량 파괴 시 처리
         private void HandleCarDestroyed(CarEntity car, int reward)
         {
             OnCarDestroyed?.Invoke(reward);

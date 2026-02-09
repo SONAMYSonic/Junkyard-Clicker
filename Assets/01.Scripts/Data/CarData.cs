@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace JunkyardClicker.Core
 {
+    // 차량 데이터 ScriptableObject
     [CreateAssetMenu(fileName = "NewCarData", menuName = "JunkyardClicker/Car Data")]
     public class CarData : ScriptableObject
     {
@@ -30,6 +31,7 @@ namespace JunkyardClicker.Core
         public Sprite BaseSprite => _baseSprite;
         public CarPartData[] PartDataList => _partDataList;
 
+        // 등급에 따른 스폰 가중치 반환
         public float GetSpawnWeight()
         {
             return _grade switch
@@ -42,6 +44,7 @@ namespace JunkyardClicker.Core
             };
         }
 
+        // 등급에 따른 색상 반환
         public Color GetGradeColor()
         {
             return _grade switch

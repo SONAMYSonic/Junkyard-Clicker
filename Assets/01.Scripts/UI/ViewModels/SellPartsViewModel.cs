@@ -5,10 +5,7 @@ namespace JunkyardClicker.UI.ViewModels
     using Core;
     using MVVM;
 
-    /// <summary>
-    /// 부품 판매 버튼을 위한 ViewModel
-    /// 엄격한 MVVM: ServiceLocator를 통한 의존성 주입만 사용
-    /// </summary>
+    // 부품 판매 버튼을 위한 ViewModel
     public class SellPartsViewModel : ViewModelBase
     {
         private ICurrencyService _currencyService;
@@ -16,6 +13,7 @@ namespace JunkyardClicker.UI.ViewModels
         public Observable<string> SellValueText { get; } = new Observable<string>("판매 ($0)");
         public Observable<bool> CanSell { get; } = new Observable<bool>(false);
 
+        // 초기화 및 이벤트 구독
         public override void Initialize()
         {
             base.Initialize();
@@ -30,6 +28,7 @@ namespace JunkyardClicker.UI.ViewModels
             RefreshAll();
         }
 
+        // 이벤트 구독 해제
         protected override void OnDispose()
         {
             if (_currencyService != null)
@@ -40,6 +39,7 @@ namespace JunkyardClicker.UI.ViewModels
             base.OnDispose();
         }
 
+        // 판매 요청
         public void RequestSell()
         {
             if (_currencyService == null)
@@ -51,6 +51,7 @@ namespace JunkyardClicker.UI.ViewModels
             _currencyService.SellAllParts();
         }
 
+        // UI 갱신
         private void RefreshAll()
         {
             if (_currencyService == null) return;
@@ -61,6 +62,7 @@ namespace JunkyardClicker.UI.ViewModels
             CanSell.Value = totalValue > 0;
         }
 
+        // 총 판매 가치 계산
         private int CalculateTotalValue()
         {
             if (_currencyService == null) return 0;

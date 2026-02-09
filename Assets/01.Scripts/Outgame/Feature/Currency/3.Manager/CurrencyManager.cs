@@ -4,11 +4,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using JunkyardClicker.Core;
 
-/// <summary>
-/// 재화 관리자
-/// ICurrencyService 인터페이스를 구현하여 DIP 준수
-/// Firebase 초기화 완료 후 데이터 로드
-/// </summary>
+// 재화 관리자 - ICurrencyService 구현
 public class CurrencyManager : MonoBehaviour, ICurrencyService
 {
     public static CurrencyManager Instance { get; private set; }
@@ -30,11 +26,9 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
     private readonly List<(PartType partType, int amount)> _pendingPartRewards = new();
     private readonly List<int> _pendingMoneyRewards = new();
 
-    /// <summary>
-    /// 데이터 로드 완료 여부
-    /// </summary>
     public bool IsDataLoaded { get; private set; }
 
+    // 싱글톤 설정 및 서비스 등록
     private void Awake()
     {
         Instance = this;
@@ -42,6 +36,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         ServiceLocator.Register<ICurrencyService>(this);
     }
 
+    // 이벤트 구독
     private void OnEnable()
     {
         // 파츠 수집 이벤트 구독
@@ -49,20 +44,20 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         GameEvents.OnCarDestroyed += HandleCarDestroyed;
     }
 
+    // 이벤트 구독 해제
     private void OnDisable()
     {
         GameEvents.OnPartCollected -= HandlePartCollected;
         GameEvents.OnCarDestroyed -= HandleCarDestroyed;
     }
 
+    // 초기화 시작
     private void Start()
     {
         InitializeAsync().Forget();
     }
 
-    /// <summary>
-    /// 비동기 초기화 - Firebase 준비 후 데이터 로드
-    /// </summary>
+    // 비동기 초기화 - Firebase 준비 후 데이터 로드
     private async UniTaskVoid InitializeAsync()
     {
         try
@@ -80,6 +75,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         }
     }
 
+    // 저장된 데이터 로드
     private async UniTask LoadDataAsync()
     {
         try
@@ -112,6 +108,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         }
     }
 
+    // 기본값으로 초기화
     private void InitializeWithDefaults()
     {
         for (int i = 0; i < _currencies.Length; i++)
@@ -124,9 +121,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         OnDataChanged?.Invoke();
     }
 
-    /// <summary>
-    /// 데이터 로드 전 발생한 보상을 처리
-    /// </summary>
+    // 데이터 로드 전 발생한 보상 처리
     private void ProcessPendingRewards()
     {
         // 대기열이 비어있으면 리턴
@@ -154,6 +149,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         Save();
     }
 
+    // 파츠 수집 이벤트 처리
     private void HandlePartCollected(PartType partType, int amount)
     {
         // 데이터 로드 전이면 대기열에 추가
@@ -168,6 +164,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         Add(currencyType, amount);
     }
 
+    // 차량 파괴 이벤트 처리
     private void HandleCarDestroyed(int reward)
     {
         // 데이터 로드 전이면 대기열에 추가
@@ -181,7 +178,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         Add(ECurrencyType.Money, reward);
     }
 
-
+    // 재화 조회
     public Currency Get(ECurrencyType currencyType)
     {
         int index = (int)currencyType;
@@ -199,6 +196,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
     public Currency Plate => Get(ECurrencyType.Plate);
     public Currency Rubber => Get(ECurrencyType.Rubber);
 
+    // 재화 추가
     public void Add(ECurrencyType type, Currency amount)
     {
         int index = (int)type;
@@ -212,11 +210,13 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         OnDataChanged?.Invoke();
     }
 
+    // 재화 추가 (double 오버로드)
     public void Add(ECurrencyType type, double amount)
     {
         Add(type, new Currency(amount));
     }
 
+    // 재화 사용 시도
     public bool TrySpend(ECurrencyType type, Currency amount)
     {
         int index = (int)type;
@@ -237,6 +237,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         return false;
     }
 
+    // 구매 가능 여부 확인
     public bool CanAfford(ECurrencyType type, Currency amount)
     {
         int index = (int)type;
@@ -247,6 +248,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         return _currencies[index] >= amount;
     }
 
+    // 모든 파츠 판매
     public int SellAllParts()
     {
         int totalValue = 0;
@@ -269,6 +271,7 @@ public class CurrencyManager : MonoBehaviour, ICurrencyService
         return totalValue;
     }
 
+    // Firebase에 저장
     private void Save()
     {
         var saveData = new CurrencySaveData

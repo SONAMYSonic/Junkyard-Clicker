@@ -4,14 +4,12 @@ using UnityEngine;
 
 namespace JunkyardClicker.Core
 {
-    /// <summary>
-    /// 서비스 로케이터 패턴 구현
-    /// 의존성 주입을 단순화하고 서비스 간의 결합도를 낮춤
-    /// </summary>
+    // 서비스 로케이터 패턴 구현
     public static class ServiceLocator
     {
         private static readonly Dictionary<Type, object> s_services = new();
 
+        // 서비스 등록
         public static void Register<T>(T service) where T : class
         {
             Type type = typeof(T);
@@ -24,6 +22,7 @@ namespace JunkyardClicker.Core
             s_services[type] = service;
         }
 
+        // 서비스 조회
         public static T Get<T>() where T : class
         {
             Type type = typeof(T);
@@ -37,6 +36,7 @@ namespace JunkyardClicker.Core
             return null;
         }
 
+        // 서비스 조회 시도
         public static bool TryGet<T>(out T service) where T : class
         {
             Type type = typeof(T);
@@ -51,17 +51,20 @@ namespace JunkyardClicker.Core
             return false;
         }
 
+        // 서비스 등록 해제
         public static void Unregister<T>() where T : class
         {
             Type type = typeof(T);
             s_services.Remove(type);
         }
 
+        // 모든 서비스 제거
         public static void Clear()
         {
             s_services.Clear();
         }
 
+        // 서비스 등록 여부 확인
         public static bool IsRegistered<T>() where T : class
         {
             return s_services.ContainsKey(typeof(T));

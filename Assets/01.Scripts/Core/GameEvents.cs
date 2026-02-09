@@ -4,10 +4,7 @@ namespace JunkyardClicker.Core
 {
     using Car;
 
-    /// <summary>
-    /// 게임 이벤트 시스템
-    /// static 이벤트 기반의 간단한 Pub/Sub 패턴
-    /// </summary>
+    // 게임 이벤트 시스템 - static 이벤트 기반 Pub/Sub 패턴
     public static class GameEvents
     {
         #region Events
@@ -24,26 +21,31 @@ namespace JunkyardClicker.Core
 
         #region Event Raise Methods
 
+        // 차량 스폰 이벤트 발생
         public static void RaiseCarSpawned(CarEntity car)
         {
             OnCarSpawned?.Invoke(car);
         }
 
+        // 데미지 이벤트 발생
         public static void RaiseDamageDealt(int damage)
         {
             OnDamageDealt?.Invoke(damage);
         }
 
+        // 파츠 파괴 이벤트 발생
         public static void RaisePartDestroyed(CarPartType partType)
         {
             OnPartDestroyed?.Invoke(partType);
         }
 
+        // 차량 파괴 이벤트 발생
         public static void RaiseCarDestroyed(int reward)
         {
             OnCarDestroyed?.Invoke(reward);
         }
 
+        // 파츠 수집 이벤트 발생
         public static void RaisePartCollected(PartType partType, int amount)
         {
             OnPartCollected?.Invoke(partType, amount);

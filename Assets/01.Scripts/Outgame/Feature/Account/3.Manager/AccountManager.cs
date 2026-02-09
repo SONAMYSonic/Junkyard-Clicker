@@ -2,9 +2,7 @@ using System;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 
-// 매니저의 역할:
-// 1. 도메인 관리: 생성/조회/수정/삭제와 같은 비즈니스 로직 
-// 2. 외부와의 소통 창구
+// 계정 관리자 - 로그인/회원가입 비즈니스 로직
 public class AccountManager : MonoBehaviour
 {
     public static AccountManager Instance { get; private set; }
@@ -15,6 +13,7 @@ public class AccountManager : MonoBehaviour
 
     private IAccountRepository _repository;
 
+    // 싱글톤 설정 및 Repository 초기화
     private void Awake()
     {
         Instance = this;

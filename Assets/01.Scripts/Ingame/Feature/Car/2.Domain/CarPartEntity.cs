@@ -5,9 +5,7 @@ namespace JunkyardClicker.Car
 {
     using JunkyardClicker.Core;
 
-    /// <summary>
-    /// 차량 파츠 클래스 - MonoBehaviour와 도메인 로직의 연결
-    /// </summary>
+    // 차량 파츠 클래스 - MonoBehaviour와 도메인 로직의 연결
     public class CarPartEntity : MonoBehaviour
     {
         [SerializeField]
@@ -23,6 +21,7 @@ namespace JunkyardClicker.Car
 
         public event Action<CarPartEntity> OnDestroyed;
 
+        // 파츠 데이터로 초기화
         public void Initialize(CarPartData data, int carMaxHp)
         {
             _data = data;
@@ -32,6 +31,7 @@ namespace JunkyardClicker.Car
             UpdateVisual();
         }
 
+        // 데미지를 받고 실제 적용된 데미지를 반환
         public int TakeDamage(int damage)
         {
             if (IsDestroyed)
@@ -56,6 +56,7 @@ namespace JunkyardClicker.Car
             return actualDamage;
         }
 
+        // 파츠 파괴 시 처리
         private void HandleDestroyed()
         {
             DropParts();
@@ -68,6 +69,7 @@ namespace JunkyardClicker.Car
             OnDestroyed?.Invoke(this);
         }
 
+        // 파츠 드롭 아이템 처리
         private void DropParts()
         {
             if (_data == null || _data.Drops == null)
@@ -85,6 +87,7 @@ namespace JunkyardClicker.Car
             }
         }
 
+        // HP 비율에 따라 스프라이트 업데이트
         private void UpdateVisual()
         {
             if (_spriteRenderer == null || _data == null)
@@ -104,6 +107,7 @@ namespace JunkyardClicker.Car
             }
         }
 
+        // 파츠 상태 리셋
         public void ResetPart()
         {
             if (_state != null)

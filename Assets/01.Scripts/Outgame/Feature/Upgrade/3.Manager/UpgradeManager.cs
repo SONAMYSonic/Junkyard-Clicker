@@ -3,11 +3,7 @@ using Cysharp.Threading.Tasks;
 using UnityEngine;
 using JunkyardClicker.Core;
 
-/// <summary>
-/// 업그레이드 관리자
-/// IUpgradeService 인터페이스를 구현하여 DIP 준수
-/// Firebase 초기화 완료 후 데이터 로드
-/// </summary>
+// 업그레이드 관리자 - IUpgradeService 구현
 public class UpgradeManager : MonoBehaviour, IUpgradeService
 {
     public static UpgradeManager Instance { get; private set; }
@@ -35,11 +31,9 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
     public int ToolDamage => GetToolDamage(ToolLevel);
     public int WorkerDps => GetWorkerDps(WorkerLevel);
 
-    /// <summary>
-    /// 데이터 로드 완료 여부
-    /// </summary>
     public bool IsDataLoaded { get; private set; }
 
+    // 싱글톤 설정 및 서비스 등록
     private void Awake()
     {
         Instance = this;
@@ -52,6 +46,7 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
         ValidateConfig();
     }
 
+    // Config 유효성 검사
     private void ValidateConfig()
     {
         if (_config == null)
@@ -60,14 +55,13 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
         }
     }
 
+    // 초기화 시작
     private void Start()
     {
         InitializeAsync().Forget();
     }
 
-    /// <summary>
-    /// 비동기 초기화 - Firebase 준비 후 데이터 로드
-    /// </summary>
+    // 비동기 초기화 - Firebase 준비 후 데이터 로드
     private async UniTaskVoid InitializeAsync()
     {
         try
@@ -85,6 +79,7 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
         }
     }
 
+    // 저장된 데이터 로드
     private async UniTask LoadDataAsync()
     {
         try
@@ -116,6 +111,7 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
         }
     }
 
+    // 기본값으로 초기화
     private void InitializeWithDefaults()
     {
         for (int i = 0; i < _levels.Length; i++)
@@ -127,23 +123,27 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
         OnUpgraded?.Invoke();
     }
 
+    // 업그레이드 레벨 조회
     public int GetLevel(EUpgradeType type)
     {
         return _levels[(int)type];
     }
 
+    // 도구 데미지 반환
     public int GetToolDamage(int level)
     {
         if (_config == null) return 1;
         return _config.GetToolDamage(level);
     }
 
+    // 작업자 초당 데미지 반환
     public int GetWorkerDps(int level)
     {
         if (_config == null) return 0;
         return _config.GetWorkerDps(level);
     }
 
+    // 업그레이드 비용 반환
     public int GetUpgradeCost(EUpgradeType type)
     {
         if (_config == null) return int.MaxValue;
@@ -158,6 +158,7 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
         };
     }
 
+    // 최대 레벨 여부 확인
     public bool IsMaxLevel(EUpgradeType type)
     {
         if (_config == null) return true;
@@ -172,6 +173,7 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
         };
     }
 
+    // 업그레이드 시도
     public bool TryUpgrade(EUpgradeType type)
     {
         if (IsMaxLevel(type))
@@ -204,6 +206,7 @@ public class UpgradeManager : MonoBehaviour, IUpgradeService
         return false;
     }
 
+    // Firebase에 저장
     private void Save()
     {
         var saveData = new UpgradeSaveData

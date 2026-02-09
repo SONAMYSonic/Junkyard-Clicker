@@ -2,6 +2,7 @@ using UnityEngine;
 
 namespace JunkyardClicker.Core
 {
+    // 차량 파츠 데이터 ScriptableObject
     [CreateAssetMenu(fileName = "NewCarPartData", menuName = "JunkyardClicker/Car Part Data")]
     public class CarPartData : ScriptableObject
     {
@@ -31,11 +32,13 @@ namespace JunkyardClicker.Core
         public Sprite DamagedSprite => _damagedSprite;
         public Sprite DestroyedSprite => _destroyedSprite;
 
+        // 차량 HP 비율로 파츠 최대 HP 계산
         public int CalculateMaxHp(int carMaxHp)
         {
             return Mathf.RoundToInt(carMaxHp * _hpRatio);
         }
 
+        // HP 비율에 따른 스프라이트 반환
         public Sprite GetSpriteForState(float hpRatio)
         {
             if (hpRatio <= 0f)

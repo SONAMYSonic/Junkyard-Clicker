@@ -6,11 +6,7 @@ namespace JunkyardClicker.UI.ViewModels
     using JunkyardClicker.Core;
     using JunkyardClicker.UI.MVVM;
 
-    /// <summary>
-    /// 업그레이드 버튼을 위한 ViewModel
-    /// DIP: IUpgradeService, ICurrencyService 인터페이스를 통해 의존성 주입
-    /// 엄격한 MVVM: ServiceLocator를 통한 의존성 주입만 사용
-    /// </summary>
+    // 업그레이드 버튼을 위한 ViewModel
     public class UpgradeViewModel : ViewModelBase
     {
         private EUpgradeType _upgradeType;
@@ -25,11 +21,13 @@ namespace JunkyardClicker.UI.ViewModels
 
         public event Action OnUpgradeRequested;
 
+        // 업그레이드 타입 설정
         public void SetUpgradeType(EUpgradeType type)
         {
             _upgradeType = type;
         }
 
+        // 초기화 및 이벤트 구독
         public override void Initialize()
         {
             base.Initialize();
@@ -52,6 +50,7 @@ namespace JunkyardClicker.UI.ViewModels
             RefreshAll();
         }
 
+        // 이벤트 구독 해제
         protected override void OnDispose()
         {
             if (_currencyService != null)
@@ -67,6 +66,7 @@ namespace JunkyardClicker.UI.ViewModels
             base.OnDispose();
         }
 
+        // 업그레이드 요청
         public void RequestUpgrade()
         {
             if (_upgradeService == null)
@@ -79,6 +79,7 @@ namespace JunkyardClicker.UI.ViewModels
             OnUpgradeRequested?.Invoke();
         }
 
+        // 모든 UI 갱신
         private void RefreshAll()
         {
             if (_upgradeService == null || _currencyService == null) return;
@@ -90,6 +91,7 @@ namespace JunkyardClicker.UI.ViewModels
             RefreshCanUpgrade();
         }
 
+        // 이름 갱신
         private void RefreshName()
         {
             Name.Value = _upgradeType switch
@@ -100,6 +102,7 @@ namespace JunkyardClicker.UI.ViewModels
             };
         }
 
+        // 레벨 갱신
         private void RefreshLevel()
         {
             int currentLevel = _upgradeService.GetLevel(_upgradeType);
@@ -108,6 +111,7 @@ namespace JunkyardClicker.UI.ViewModels
             Level.Value = isMaxLevel ? $"Lv.{currentLevel} (MAX)" : $"Lv.{currentLevel}";
         }
 
+        // 비용 갱신
         private void RefreshCost()
         {
             bool isMaxLevel = _upgradeService.IsMaxLevel(_upgradeType);
@@ -123,6 +127,7 @@ namespace JunkyardClicker.UI.ViewModels
             Cost.Value = $"${costCurrency}";
         }
 
+        // 효과 갱신
         private void RefreshEffect()
         {
             int currentLevel = _upgradeService.GetLevel(_upgradeType);
@@ -135,6 +140,7 @@ namespace JunkyardClicker.UI.ViewModels
             };
         }
 
+        // 업그레이드 가능 여부 갱신
         private void RefreshCanUpgrade()
         {
             if (_upgradeService == null || _currencyService == null)

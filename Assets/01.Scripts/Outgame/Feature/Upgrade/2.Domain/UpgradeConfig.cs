@@ -1,9 +1,6 @@
 using UnityEngine;
 
-/// <summary>
-/// 업그레이드 밸런스 테이블 설정
-/// ScriptableObject로 분리하여 에디터에서 수정 가능
-/// </summary>
+// 업그레이드 밸런스 테이블 설정 ScriptableObject
 [CreateAssetMenu(fileName = "UpgradeConfig", menuName = "JunkyardClicker/Upgrade Config")]
 public class UpgradeConfig : ScriptableObject
 {
@@ -34,9 +31,7 @@ public class UpgradeConfig : ScriptableObject
     public int ToolMaxLevel => _toolDamageTable.Length - 1;
     public int WorkerMaxLevel => _workerDpsTable.Length - 1;
 
-    /// <summary>
-    /// 레벨에 해당하는 Tool 데미지 반환
-    /// </summary>
+    // 레벨에 해당하는 Tool 데미지 반환
     public int GetToolDamage(int level)
     {
         if (level < 0 || level >= _toolDamageTable.Length)
@@ -46,9 +41,7 @@ public class UpgradeConfig : ScriptableObject
         return _toolDamageTable[level];
     }
 
-    /// <summary>
-    /// 레벨에 해당하는 Worker DPS 반환
-    /// </summary>
+    // 레벨에 해당하는 Worker DPS 반환
     public int GetWorkerDps(int level)
     {
         if (level < 0 || level >= _workerDpsTable.Length)
@@ -58,9 +51,7 @@ public class UpgradeConfig : ScriptableObject
         return _workerDpsTable[level];
     }
 
-    /// <summary>
-    /// 다음 레벨 업그레이드 비용 반환
-    /// </summary>
+    // Tool 다음 레벨 업그레이드 비용 반환
     public int GetToolUpgradeCost(int currentLevel)
     {
         int nextLevel = currentLevel + 1;
@@ -71,9 +62,7 @@ public class UpgradeConfig : ScriptableObject
         return _toolCostTable[nextLevel];
     }
 
-    /// <summary>
-    /// 다음 레벨 업그레이드 비용 반환
-    /// </summary>
+    // Worker 다음 레벨 업그레이드 비용 반환
     public int GetWorkerUpgradeCost(int currentLevel)
     {
         int nextLevel = currentLevel + 1;

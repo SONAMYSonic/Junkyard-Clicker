@@ -5,11 +5,7 @@ namespace JunkyardClicker.Resource
 {
     using JunkyardClicker.Core;
 
-    /// <summary>
-    /// 자동 데미지 서비스
-    /// IAutoDamageService 인터페이스 구현
-    /// 일정 시간마다 자동으로 데미지를 적용
-    /// </summary>
+    // 자동 데미지 서비스 - 일정 시간마다 자동으로 데미지 적용
     public class AutoDamageService : MonoBehaviour, IAutoDamageService
     {
         [SerializeField]
@@ -30,14 +26,16 @@ namespace JunkyardClicker.Resource
         public float TickInterval
         {
             get => _tickInterval;
-            set => _tickInterval = Mathf.Max(0.1f, value); // 최소 0.1초
+            set => _tickInterval = Mathf.Max(0.1f, value);
         }
 
+        // 서비스 등록
         private void Awake()
         {
             ServiceLocator.Register<IAutoDamageService>(this);
         }
 
+        // 의존성 주입
         private void Start()
         {
             if (ServiceLocator.TryGet<IDamageManager>(out var damageManager))
@@ -50,11 +48,13 @@ namespace JunkyardClicker.Resource
             }
         }
 
+        // 서비스 등록 해제
         private void OnDestroy()
         {
             ServiceLocator.Unregister<IAutoDamageService>();
         }
 
+        // 타이머 업데이트 및 자동 데미지 적용
         private void Update()
         {
             if (!_isEnabled || _damageManager == null)

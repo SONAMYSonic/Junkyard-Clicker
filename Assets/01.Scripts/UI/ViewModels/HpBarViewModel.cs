@@ -6,9 +6,7 @@ namespace JunkyardClicker.UI.ViewModels
     using JunkyardClicker.UI.MVVM;
     using CarEntity = JunkyardClicker.Car.CarEntity;
 
-    /// <summary>
-    /// HP 바 UI를 위한 ViewModel
-    /// </summary>
+    // HP 바 UI를 위한 ViewModel
     public class HpBarViewModel : ViewModelBase
     {
         public Observable<float> HpRatio { get; } = new Observable<float>(1f);
@@ -19,6 +17,7 @@ namespace JunkyardClicker.UI.ViewModels
 
         private CarEntity _currentCar;
 
+        // 초기화 및 이벤트 구독
         public override void Initialize()
         {
             base.Initialize();
@@ -32,6 +31,7 @@ namespace JunkyardClicker.UI.ViewModels
             }
         }
 
+        // 이벤트 구독 해제
         protected override void OnDispose()
         {
             GameEvents.OnCarSpawned -= HandleCarSpawned;
@@ -39,16 +39,19 @@ namespace JunkyardClicker.UI.ViewModels
             base.OnDispose();
         }
 
+        // 차량 스폰 시 처리
         private void HandleCarSpawned(CarEntity car)
         {
             SetCar(car);
         }
 
+        // 데미지 발생 시 HP 바 갱신
         private void HandleDamageDealt(int damage)
         {
             RefreshHpBar();
         }
 
+        // 현재 차량 설정
         private void SetCar(CarEntity car)
         {
             _currentCar = car;
@@ -56,6 +59,7 @@ namespace JunkyardClicker.UI.ViewModels
             RefreshHpBar();
         }
 
+        // 차량 정보 갱신
         private void RefreshCarInfo()
         {
             if (_currentCar == null || _currentCar.Data == null)
@@ -68,6 +72,7 @@ namespace JunkyardClicker.UI.ViewModels
             GradeColor.Value = data.GetGradeColor();
         }
 
+        // HP 바 UI 갱신
         private void RefreshHpBar()
         {
             if (_currentCar == null)
@@ -81,6 +86,7 @@ namespace JunkyardClicker.UI.ViewModels
             HpBarColor.Value = GetHpColor(hpRatio);
         }
 
+        // HP 비율에 따른 색상 반환
         private Color GetHpColor(float ratio)
         {
             if (ratio > 0.5f)

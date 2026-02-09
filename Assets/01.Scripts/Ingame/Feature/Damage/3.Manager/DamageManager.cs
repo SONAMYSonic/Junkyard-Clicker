@@ -8,11 +8,7 @@ namespace JunkyardClicker.Resource
     using CarEntity = JunkyardClicker.Car.CarEntity;
     using CarPartEntity = JunkyardClicker.Car.CarPartEntity;
 
-    /// <summary>
-    /// 데미지 시스템 매니저
-    /// 모든 데미지 처리를 담당 (SRP - 데미지 전용)
-    /// CarManager와 분리되어 단일 책임을 가짐
-    /// </summary>
+    // 데미지 시스템 매니저 - 모든 데미지 처리를 담당
     public class DamageManager : MonoBehaviour, IDamageManager
     {
         public static DamageManager Instance { get; private set; }
@@ -22,12 +18,14 @@ namespace JunkyardClicker.Resource
 
         public event Action<DamageInfo> OnDamageApplied;
 
+        // 싱글톤 설정 및 서비스 등록
         private void Awake()
         {
             SetupSingleton();
             ServiceLocator.Register<IDamageManager>(this);
         }
 
+        // 싱글톤 인스턴스 설정
         private void SetupSingleton()
         {
             if (Instance != null && Instance != this)
@@ -39,11 +37,13 @@ namespace JunkyardClicker.Resource
             Instance = this;
         }
 
+        // 의존성 초기화
         private void Start()
         {
             InitializeDependencies();
         }
 
+        // CarManager와 DamageCalculator 의존성 주입
         private void InitializeDependencies()
         {
             // CarManager 의존성 주입
@@ -68,6 +68,7 @@ namespace JunkyardClicker.Resource
             }
         }
 
+        // 오브젝트 파괴 시 정리
         private void OnDestroy()
         {
             if (Instance == this)
@@ -77,6 +78,7 @@ namespace JunkyardClicker.Resource
             }
         }
 
+        // 클릭 데미지 적용
         public void ApplyClickDamage(Vector2 worldPosition)
         {
             CarEntity currentCar = GetCurrentCar();
@@ -96,6 +98,7 @@ namespace JunkyardClicker.Resource
             GameEvents.RaiseDamageDealt(damage);
         }
 
+        // 자동 데미지 적용
         public void ApplyAutoDamage()
         {
             CarEntity currentCar = GetCurrentCar();
@@ -121,6 +124,7 @@ namespace JunkyardClicker.Resource
             GameEvents.RaiseDamageDealt(damage);
         }
 
+        // 현재 활성화된 차량 가져오기
         private CarEntity GetCurrentCar()
         {
             if (_carManager == null || !_carManager.HasActiveCar)
@@ -131,6 +135,7 @@ namespace JunkyardClicker.Resource
             return _carManager.CurrentCar;
         }
 
+        // 특정 위치에 데미지 적용
         private void ApplyDamageAtPosition(CarEntity car, int damage, Vector2 worldPosition)
         {
             CarPartEntity clickedPart = car.GetPartAtPosition(worldPosition);
@@ -145,6 +150,7 @@ namespace JunkyardClicker.Resource
             }
         }
 
+        // 데미지 계산기 교체
         public void SetDamageCalculator(IDamageCalculator calculator)
         {
             _damageCalculator = calculator ?? throw new ArgumentNullException(nameof(calculator));

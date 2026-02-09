@@ -4,21 +4,20 @@ namespace JunkyardClicker.Car
 {
     using JunkyardClicker.Core;
 
-    /// <summary>
-    /// 차량 스폰 선택 로직을 담당하는 도메인 서비스
-    /// 가중치 기반 랜덤 선택
-    /// </summary>
+    // 차량 스폰 선택 도메인 서비스 - 가중치 기반 랜덤 선택
     public class CarSpawnSelector
     {
         private readonly CarData[] _carDataList;
         private readonly float _totalWeight;
 
+        // 생성자
         public CarSpawnSelector(CarData[] carDataList)
         {
             _carDataList = carDataList;
             _totalWeight = CalculateTotalWeight();
         }
 
+        // 전체 가중치 합계 계산
         private float CalculateTotalWeight()
         {
             float total = 0f;
@@ -34,6 +33,7 @@ namespace JunkyardClicker.Car
             return total;
         }
 
+        // 가중치 기반 랜덤 선택
         public CarData SelectRandom()
         {
             if (_carDataList == null || _carDataList.Length == 0)

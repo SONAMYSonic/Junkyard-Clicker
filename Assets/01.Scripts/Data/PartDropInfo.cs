@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace JunkyardClicker.Core
 {
+    // 파츠 드롭 정보
     [Serializable]
     public class PartDropInfo
     {
@@ -24,11 +25,13 @@ namespace JunkyardClicker.Core
         public int MaxAmount => _maxAmount;
         public float DropChance => _dropChance;
 
+        // 최소~최대 범위에서 랜덤 수량 반환
         public int GetRandomAmount()
         {
             return UnityEngine.Random.Range(_minAmount, _maxAmount + 1);
         }
 
+        // 드롭 확률 굴림
         public bool RollDrop()
         {
             return UnityEngine.Random.value <= _dropChance;

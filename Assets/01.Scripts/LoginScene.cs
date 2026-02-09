@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+// 로그인 씬 컨트롤러
 public class LoginScene : MonoBehaviour
 {
     // 화면 모드 (로그인 / 회원가입)
@@ -26,7 +27,8 @@ public class LoginScene : MonoBehaviour
     [SerializeField] private TMP_InputField _emailInputField;
     [SerializeField] private TMP_InputField _passwordInputField;
     [SerializeField] private TMP_InputField _passwordConfirmInputField;
-    
+
+    // 초기화
     private void Start()
     {
         AddButtonEvents();

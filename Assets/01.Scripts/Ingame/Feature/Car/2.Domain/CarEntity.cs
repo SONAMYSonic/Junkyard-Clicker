@@ -6,9 +6,7 @@ namespace JunkyardClicker.Car
 {
     using JunkyardClicker.Core;
 
-    /// <summary>
-    /// 차량 클래스 - MonoBehaviour와 도메인 로직의 연결
-    /// </summary>
+    // 차량 클래스 - MonoBehaviour와 도메인 로직의 연결
     public class CarEntity : MonoBehaviour
     {
         [SerializeField]
@@ -29,6 +27,7 @@ namespace JunkyardClicker.Car
         public event Action<CarEntity, int> OnDestroyed;
         public event Action<int> OnDamageReceived;
 
+        // 차량 데이터로 초기화
         public void Initialize(CarData data)
         {
             _data = data;
@@ -42,6 +41,7 @@ namespace JunkyardClicker.Car
             InitializeParts();
         }
 
+        // 모든 파츠 초기화
         private void InitializeParts()
         {
             for (int i = 0; i < _parts.Count && i < _data.PartDataList.Length; i++)
@@ -54,10 +54,7 @@ namespace JunkyardClicker.Car
             }
         }
 
-        /// <summary>
-        /// 차량에 데미지 적용
-        /// 주의: 이벤트 발행은 DamageManager가 담당 (단일 책임)
-        /// </summary>
+        // 차량에 데미지 적용 (이벤트 발행은 DamageManager가 담당)
         public int TakeDamage(int damage)
         {
             if (IsDestroyed)
@@ -81,10 +78,7 @@ namespace JunkyardClicker.Car
             return actualDamage;
         }
 
-        /// <summary>
-        /// 특정 파츠에 데미지 적용
-        /// 주의: 이벤트 발행은 DamageManager가 담당 (단일 책임)
-        /// </summary>
+        // 특정 파츠에 데미지 적용 (이벤트 발행은 DamageManager가 담당)
         public int TakeDamageOnPart(CarPartEntity targetPart, int damage)
         {
             if (IsDestroyed || targetPart == null)
@@ -114,12 +108,14 @@ namespace JunkyardClicker.Car
             return actualDamage;
         }
 
+        // 파츠 파괴 시 처리
         private void HandlePartDestroyed(CarPartEntity part)
         {
             _state.IncrementDestroyedParts();
             part.OnDestroyed -= HandlePartDestroyed;
         }
 
+        // 차량 파괴 시 처리
         private void HandleCarDestroyed()
         {
             DestroyRemainingParts();
@@ -129,6 +125,7 @@ namespace JunkyardClicker.Car
             GameEvents.RaiseCarDestroyed(totalReward);
         }
 
+        // 남은 파츠 모두 파괴
         private void DestroyRemainingParts()
         {
             foreach (CarPartEntity part in _parts)
@@ -140,6 +137,7 @@ namespace JunkyardClicker.Car
             }
         }
 
+        // 월드 좌표에 해당하는 파츠 반환
         public CarPartEntity GetPartAtPosition(Vector2 worldPosition)
         {
             foreach (CarPartEntity part in _parts)
@@ -154,6 +152,7 @@ namespace JunkyardClicker.Car
             return null;
         }
 
+        // 오브젝트 파괴 시 이벤트 구독 해제
         private void OnDestroy()
         {
             foreach (CarPartEntity part in _parts)
