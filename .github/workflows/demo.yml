@@ -106,23 +106,36 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           GH_TOKEN: ${{ github.token }}
         run: |
-          # GitHub Actions API로 "Build WebGL" 스텝의 실제 로그 가져오기
-          JOBS_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+          # GitHub Actions API로 빌드 로그 가져오기 (-L로 리다이렉트 따라감)
+          JOBS_JSON=$(curl -s -L -H "Authorization: Bearer $GH_TOKEN" \
             "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
 
-          # 실패한 스텝이 있는 job의 ID 추출
           JOB_ID=$(echo "$JOBS_JSON" | jq -r '.jobs[0].id')
+
+          echo "::group::Debug - Job info"
+          echo "JOB_ID: $JOB_ID"
+          echo "::endgroup::"
 
           ERROR_LOG=""
           if [ "$JOB_ID" != "null" ] && [ -n "$JOB_ID" ]; then
-            # job 로그 전체 다운로드 (텍스트)
-            FULL_LOG=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
-              -H "Accept: application/vnd.github.v3+json" \
+            # job 로그 다운로드 (-L 필수: GitHub API가 302 리다이렉트 반환)
+            FULL_LOG=$(curl -s -L -H "Authorization: Bearer $GH_TOKEN" \
               "https://api.github.com/repos/${{ github.repository }}/actions/jobs/$JOB_ID/logs" 2>/dev/null || echo "")
 
-            if [ -n "$FULL_LOG" ]; then
-              # 에러 관련 라인만 추출 (마지막 300줄에서)
-              ERROR_LOG=$(echo "$FULL_LOG" | tail -300 | grep -A 3 -B 1 -i "error\|fatal\|fail\|exception\|Error CS" | head -80)
+            LOG_LINES=$(echo "$FULL_LOG" | wc -l)
+            echo "::group::Debug - Full log stats"
+            echo "Total log lines: $LOG_LINES"
+            echo "Last 20 lines:"
+            echo "$FULL_LOG" | tail -20
+            echo "::endgroup::"
+
+            if [ "$LOG_LINES" -gt 5 ]; then
+              # 에러 라인 추출 + 에러가 없으면 마지막 50줄이라도 보냄
+              ERROR_LOG=$(echo "$FULL_LOG" | grep -A 3 -B 1 -i "error\|fatal\|fail\|exception\|Error CS\|Cannot\|not found\|missing" | tail -80)
+
+              if [ -z "$ERROR_LOG" ]; then
+                ERROR_LOG=$(echo "$FULL_LOG" | tail -50)
+              fi
             fi
           fi
 
@@ -138,7 +151,7 @@ jobs:
             ERROR_LOG="빌드 로그를 자동 추출하지 못했습니다. GitHub Actions 로그를 직접 확인해주세요."
           fi
 
-          echo "::group::Debug - Extracted error log"
+          echo "::group::Debug - Final error log sent to Gemini"
           echo "$ERROR_LOG" | head -30
           echo "::endgroup::"
 
