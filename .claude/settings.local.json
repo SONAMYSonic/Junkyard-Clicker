@@ -9,7 +9,8 @@
       "Bash(grep:*)",
       "Bash(git checkout:*)",
       "Bash(curl:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "Bash(gh auth status:*)"
     ]
   }
 }
