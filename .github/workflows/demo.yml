@@ -52,7 +52,7 @@ jobs:
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
           targetPlatform: WebGL
-          buildProfile: "Assets/Settings/Build Profiles/Web-Desktop-Dev - Desktop - Development.asset"
+          buildProfile: "Assets/Settings/Build Profiles/Web.asset"
 
       # 4. 빌드 실패 시 → Actions API에서 빌드 로그 직접 다운로드
       - name: Capture Build Log from Actions API
