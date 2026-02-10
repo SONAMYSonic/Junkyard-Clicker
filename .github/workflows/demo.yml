@@ -72,21 +72,23 @@ jobs:
           echo "$FAILED_STEPS"
           echo "::endgroup::"
 
-          # Unity Editor.log 검색 (game-ci는 _diag/pages/ 하위에 로그 저장)
+          # Unity Editor.log 검색
           echo "Searching for Unity Editor log..."
           FOUND_LOGS=$(find /home/runner "$GITHUB_WORKSPACE" -maxdepth 8 \
-            \( -name "Editor.log" -o -name "Editor-prev.log" \) \
-            -size +10k 2>/dev/null || true)
+            \( -name "Editor.log" -o -name "Editor-prev.log" -o -name "EditorLog.log" \) \
+            -size +10k -not -path "*/_diag/*" 2>/dev/null || true)
 
-          # Editor.log가 없으면 _diag/pages 안의 가장 큰 로그 파일 찾기
-          if [ -z "$FOUND_LOGS" ]; then
-            FOUND_LOGS=$(find /home/runner -path "*/_diag/pages/*.log" -size +100k 2>/dev/null | head -3 || true)
-          fi
+          echo "::group::Debug - All log files"
+          find /home/runner "$GITHUB_WORKSPACE" -maxdepth 6 -name "*.log" -size +10k \
+            -not -path "*/.git/*" -not -path "*/_diag/*" 2>/dev/null | while read f; do
+            echo "  $f ($(wc -l < "$f") lines)"
+          done
+          echo "::endgroup::"
 
-          # 찾은 로그 중 에러가 포함된 것을 사용
+          # 찾은 Unity 로그에서 에러 추출
           for logpath in $FOUND_LOGS; do
-            echo "Checking: $logpath ($(wc -l < "$logpath") lines)"
-            CONTENT=$(grep -i "error CS\|Build completed with a result of 'Failed'\|Assets/.*error\|CommandInvokationFailure\|Fatal\|UnityException" "$logpath" | tail -40)
+            echo "Checking Unity log: $logpath ($(wc -l < "$logpath") lines)"
+            CONTENT=$(grep -i "error CS\|Build completed with a result of\|CommandInvokationFailure\|UnityException" "$logpath" | tail -40)
             if [ -n "$CONTENT" ]; then
               ERROR_LOG="$CONTENT"
               echo "Found errors in: $logpath"
@@ -94,11 +96,20 @@ jobs:
             fi
           done
 
-          # 에러 키워드가 없으면 가장 큰 로그의 마지막 부분 사용
-          if [ -z "$ERROR_LOG" ] && [ -n "$FOUND_LOGS" ]; then
-            BIGGEST=$(echo "$FOUND_LOGS" | head -1)
-            echo "No error keywords found, using tail of: $BIGGEST"
-            ERROR_LOG=$(tail -60 "$BIGGEST")
+          # Unity 로그가 없으면 전체에서 큰 로그 파일 찾기 (_diag 제외)
+          if [ -z "$ERROR_LOG" ]; then
+            BIG_LOG=$(find /home/runner "$GITHUB_WORKSPACE" -maxdepth 6 -name "*.log" -size +50k \
+              -not -path "*/.git/*" -not -path "*/_diag/*" -not -name "Packages-Update*" \
+              2>/dev/null | head -1 || true)
+            if [ -n "$BIG_LOG" ]; then
+              echo "Using large log: $BIG_LOG"
+              CONTENT=$(grep -i "error CS\|Build completed with a result of\|CommandInvokationFailure\|UnityException" "$BIG_LOG" | tail -40)
+              if [ -n "$CONTENT" ]; then
+                ERROR_LOG="$CONTENT"
+              else
+                ERROR_LOG=$(tail -60 "$BIG_LOG")
+              fi
+            fi
           fi
 
           # 폴백: 실패 스텝 정보를 Gemini에 전달
