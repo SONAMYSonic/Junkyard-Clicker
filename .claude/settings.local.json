@@ -6,7 +6,11 @@
       "mcp__unityMCP__manage_prefabs",
       "Bash(git log:*)",
       "mcp__unityMCP__execute_menu_item",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(git checkout:*)",
+      "Bash(curl:*)",
+      "Bash(python3:*)",
+      "Bash(gh auth status:*)"
     ]
   }
 }

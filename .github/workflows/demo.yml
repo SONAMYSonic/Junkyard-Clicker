@@ -1,15 +1,14 @@
-# 이 파일은 작업지시서(workflow)다.
-# - 언제(on) = "main에 push하면..."
-# - 작업(jobs) = 할 일 목록
-#   - Build:
-#       어디서? : 깃허브 서버 컴퓨터에서 (runner)
-#       단계  : 1. 코드 가져와 -> 2. 빌드해
-
-name: Unity Build
+name: Unity WebGL Build & Deploy
 
 on:
   push:
     branches: [ web-build ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+  actions: read
 
 jobs:
   build:
@@ -27,34 +26,249 @@ jobs:
           large-packages: true
           docker-images: true
           swap-storage: true
-          
+
       # 1. 코드 가져오기
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       # 2. 캐시 (빌드 속도 향상)
       - name: Cache Library
         uses: actions/cache@v4
         with:
           path: Library
-          key: Library-Windows-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-WebGL-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
           restore-keys: |
-            Library-Windows-
+            Library-WebGL-
             Library-
-      
-      # 3. Unity 빌드 (데스크탑)
-      - name: Build Windows
+
+      # 3. Unity 빌드 (실패해도 계속 진행 → 로그 캡처용)
+      - name: Build WebGL
+        id: unity-build
+        continue-on-error: true
         uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          targetPlatform: StandaloneWindows64
-      
-      # 4. 빌드 결과물 업로드
+          targetPlatform: WebGL
+          buildProfile: "Assets/Settings/Build Profiles/Web.asset"
+
+      # 4. 빌드 실패 시 → Actions API에서 빌드 로그 직접 다운로드
+      - name: Capture Build Log from Actions API
+        if: steps.unity-build.outcome == 'failure'
+        id: capture-log
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Fetching build job logs from Actions API..."
+
+          # 현재 run의 jobs 목록에서 build job ID 가져오기
+          JOB_ID=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
+            | jq -r '.jobs[0].id')
+          echo "Job ID: $JOB_ID"
+
+          # 해당 job의 전체 로그 다운로드
+          curl -s -L -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/jobs/${JOB_ID}/logs" \
+            -o /tmp/build_full.log
+
+          FULL_LINES=$(wc -l < /tmp/build_full.log)
+          echo "Downloaded full log: ${FULL_LINES} lines"
+
+          # GitHub Actions 로그의 타임스탬프 접두사 제거 (예: 2025-01-15T10:30:00.1234567Z)
+          sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z //g' /tmp/build_full.log > /tmp/build_clean.log
+
+          # 에러 관련 라인 추출 (Unity 빌드 실패 핵심 패턴)
+          grep -i \
+            "error CS\|Fatal Error\|Build completed with a result of\|CommandInvokationFailure\|Shader error\|Unable to parse\|Failed to build\|out of memory\|disk space\|Aborting batchmode\|Failed to read\|buildFailure\|Assembly has reference\|failed to compile\|UnityException\|BuildFailedException\|error building Player" \
+            /tmp/build_clean.log | grep -v "::group::\|::endgroup::\|echo \"\|0 Error\|errors (0)" | tail -50 > /tmp/build_errors.log || true
+
+          # 에러 라인이 없으면 마지막 80줄 사용 (타임스탬프 제거된 클린 로그)
+          if [ ! -s /tmp/build_errors.log ]; then
+            echo "No specific error lines found, using last 80 lines of clean log"
+            tail -80 /tmp/build_clean.log > /tmp/build_errors.log
+          fi
+
+          echo "::group::Debug - Captured error lines"
+          echo "Captured $(wc -l < /tmp/build_errors.log) error lines"
+          cat /tmp/build_errors.log | head -30
+          echo "::endgroup::"
+
+      # 5. 빌드 실패 시 → Gemini 분석
+      - name: Analyze Failure with Gemini
+        if: steps.unity-build.outcome == 'failure'
+        id: gemini
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          ERROR_LOG=""
+
+          # 1순위: Actions API에서 캡처한 로그 사용
+          if [ -f /tmp/build_errors.log ] && [ -s /tmp/build_errors.log ]; then
+            ERROR_LOG=$(cat /tmp/build_errors.log | tail -50)
+            echo "Using captured Actions API log ($(wc -l < /tmp/build_errors.log) lines)"
+          fi
+
+          # 2순위: 로컬 Unity Editor.log 검색 (폴백)
+          if [ -z "$ERROR_LOG" ]; then
+            echo "Actions log empty, searching for local Unity Editor log..."
+            FOUND_LOGS=$(find /home/runner "$GITHUB_WORKSPACE" -maxdepth 8 \
+              \( -name "Editor.log" -o -name "Editor-prev.log" -o -name "EditorLog.log" \) \
+              -size +10k -not -path "*/_diag/*" 2>/dev/null || true)
+
+            for logpath in $FOUND_LOGS; do
+              echo "Checking Unity log: $logpath ($(wc -l < "$logpath") lines)"
+              CONTENT=$(grep -i "error CS\|Build completed with a result of\|CommandInvokationFailure\|UnityException\|Fatal Error\|Shader error\|Aborting batchmode\|Failed to read\|BuildFailedException\|error building Player" "$logpath" | tail -40)
+              if [ -n "$CONTENT" ]; then
+                ERROR_LOG="$CONTENT"
+                echo "Found errors in: $logpath"
+                break
+              fi
+            done
+          fi
+
+          # 3순위: 폴백 메시지
+          if [ -z "$ERROR_LOG" ]; then
+            ERROR_LOG="Unity WebGL 빌드가 실패했습니다. 실패한 스텝: Build WebGL. game-ci/unity-builder@v4 사용. 빌드 프로파일: Web-Desktop-Dev. 로그 파일을 추출할 수 없어 상세 에러 메시지는 확인되지 않았습니다. 일반적인 Unity WebGL 빌드 실패 원인을 분석해주세요."
+          fi
+
+          echo "::group::Debug - Error log sent to Gemini"
+          echo "$ERROR_LOG" | head -30
+          echo "::endgroup::"
+
+          # API 키 확인
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "analysis<<ANALYSIS_EOF" >> $GITHUB_OUTPUT
+            echo "Gemini API 키가 미설정. GitHub Secrets에 GEMINI_API_KEY를 추가해주세요." >> $GITHUB_OUTPUT
+            echo "ANALYSIS_EOF" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Gemini API 호출
+          REQUEST_BODY=$(jq -n --arg log "$ERROR_LOG" '{
+            contents: [{ parts: [{ text: ("너는 Unity 빌드 에러 분석 전문가야. 아래 GitHub Actions 빌드 로그를 분석해줘.\n\n규칙:\n- 반드시 한국어로 답변\n- 아래 포맷을 정확히 지켜줘\n- 각 항목 2~3줄, 총 400자 이내\n- 문장을 끝까지 완성해줘 (중간에 끊기지 않게)\n\n포맷:\n[원인] 에러의 직접적인 원인\n[해결방법] 구체적인 해결 단계\n\n로그:\n" + $log) }] }],
+            generationConfig: { maxOutputTokens: 1024 }
+          }')
+
+          RESPONSE=$(curl -s -w "\n%{http_code}" \
+            "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=$GEMINI_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$REQUEST_BODY")
+
+          HTTP_CODE=$(echo "$RESPONSE" | tail -1)
+          BODY=$(echo "$RESPONSE" | sed '$d')
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            ERROR_MSG=$(echo "$BODY" | jq -r '.error.message // "알 수 없는 오류"')
+            ANALYSIS="Gemini API 오류 (HTTP $HTTP_CODE): $ERROR_MSG"
+          else
+            ANALYSIS=$(echo "$BODY" | jq -r '.candidates[0].content.parts[0].text // "AI 응답 파싱 실패"' | head -15)
+          fi
+
+          # Slack section 블록 3000자 제한 방지 (안전하게 2500자로 자르기)
+          if [ ${#ANALYSIS} -gt 2500 ]; then
+            ANALYSIS="${ANALYSIS:0:2500}..."
+          fi
+
+          echo "::group::Debug - Gemini analysis result"
+          echo "$ANALYSIS"
+          echo "::endgroup::"
+
+          echo "analysis<<EOF_GEMINI_7f3a" >> $GITHUB_OUTPUT
+          echo "$ANALYSIS" >> $GITHUB_OUTPUT
+          echo "EOF_GEMINI_7f3a" >> $GITHUB_OUTPUT
+
+      # 6. 빌드 실패 시 → 슬랙 알림 (AI 분석 포함)
+      - name: Slack Notification (Failure)
+        if: steps.unity-build.outcome == 'failure'
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          ANALYSIS: ${{ steps.gemini.outputs.analysis }}
+        run: |
+          jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg commit "$COMMIT_MSG" \
+            --arg actor "${{ github.actor }}" \
+            --arg analysis "$ANALYSIS" \
+            --arg log_url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            '{
+              text: "❌ WebGL 빌드 실패",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: ("🔥 *" + $repo + "* 빌드 실패!\n📝 커밋: " + ($commit | split("\n")[0]) + "\n👤 작성자: " + $actor + "(노민균)")
+                  }
+                },
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: ("🤖 *AI 분석 결과:*\n" + $analysis)
+                  }
+                },
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: ("🔗 <" + $log_url + "|전체 로그 확인>")
+                  }
+                }
+              ]
+            }' | curl -s -X POST -H "Content-Type: application/json" -d @- "$SLACK_WEBHOOK"
+
+      # 7. 빌드 실패 시 워크플로우 중단
+      - name: Fail workflow if build failed
+        if: steps.unity-build.outcome == 'failure'
+        run: exit 1
+
+      # 8. 빌드 결과물 업로드 (Artifact)
       - name: Upload Build
         uses: actions/upload-artifact@v4
         with:
-          name: Windows-Build
-          path: build/StandaloneWindows64
+          name: WebGL-Build
+          path: build/WebGL
+
+      # 9. GitHub Pages 배포 준비
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 10. Pages용 Artifact 업로드
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/WebGL/WebGL
+
+      # 11. GitHub Pages 배포
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+
+      # 12. 슬랙 알림 (성공)
+      - name: Slack Notification (Success)
+        if: success()
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+        run: |
+          jq -n \
+            --arg repo "${{ github.repository }}" \
+            --arg commit "$COMMIT_MSG" \
+            --arg actor "${{ github.actor }}" \
+            --arg play_url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/" \
+            '{
+              text: "✅ WebGL 빌드 & 배포 성공",
+              blocks: [
+                {
+                  type: "section",
+                  text: {
+                    type: "mrkdwn",
+                    text: ("✅ *" + $repo + "* 빌드 & 배포 완료!\n📝 커밋: " + ($commit | split("\n")[0]) + "\n👤 작성자: " + $actor + "(노민균)" + "\n🌐 <" + $play_url + "|플레이하기>")
+                  }
+                }
+              ]
+            }' | curl -s -X POST -H "Content-Type: application/json" -d @- "$SLACK_WEBHOOK"
