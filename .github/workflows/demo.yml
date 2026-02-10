@@ -77,15 +77,18 @@ jobs:
           FULL_LINES=$(wc -l < /tmp/build_full.log)
           echo "Downloaded full log: ${FULL_LINES} lines"
 
-          # 에러 관련 라인 추출 (Unity 특화 패턴 + 일반 에러 패턴)
-          grep -i \
-            "error CS\|error:\|Fatal Error\|exception\|Build completed with a result of\|CommandInvokationFailure\|Shader error\|Unable to parse\|Failed to build\|out of memory\|disk space" \
-            /tmp/build_full.log | grep -v "::group::\|::endgroup::\|echo \"\|0 Error" | tail -50 > /tmp/build_errors.log || true
+          # GitHub Actions 로그의 타임스탬프 접두사 제거 (예: 2025-01-15T10:30:00.1234567Z)
+          sed -E 's/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9:.]+Z //g' /tmp/build_full.log > /tmp/build_clean.log
 
-          # 에러 라인이 없으면 마지막 100줄 사용
+          # 에러 관련 라인 추출 (Unity 빌드 실패 핵심 패턴)
+          grep -i \
+            "error CS\|Fatal Error\|Build completed with a result of\|CommandInvokationFailure\|Shader error\|Unable to parse\|Failed to build\|out of memory\|disk space\|Aborting batchmode\|Failed to read\|buildFailure\|Assembly has reference\|failed to compile\|UnityException\|BuildFailedException\|error building Player" \
+            /tmp/build_clean.log | grep -v "::group::\|::endgroup::\|echo \"\|0 Error\|errors (0)" | tail -50 > /tmp/build_errors.log || true
+
+          # 에러 라인이 없으면 마지막 80줄 사용 (타임스탬프 제거된 클린 로그)
           if [ ! -s /tmp/build_errors.log ]; then
-            echo "No specific error lines found, using last 100 lines"
-            tail -100 /tmp/build_full.log > /tmp/build_errors.log
+            echo "No specific error lines found, using last 80 lines of clean log"
+            tail -80 /tmp/build_clean.log > /tmp/build_errors.log
           fi
 
           echo "::group::Debug - Captured error lines"
@@ -118,7 +121,7 @@ jobs:
 
             for logpath in $FOUND_LOGS; do
               echo "Checking Unity log: $logpath ($(wc -l < "$logpath") lines)"
-              CONTENT=$(grep -i "error CS\|Build completed with a result of\|CommandInvokationFailure\|UnityException\|Fatal Error\|Shader error" "$logpath" | tail -40)
+              CONTENT=$(grep -i "error CS\|Build completed with a result of\|CommandInvokationFailure\|UnityException\|Fatal Error\|Shader error\|Aborting batchmode\|Failed to read\|BuildFailedException\|error building Player" "$logpath" | tail -40)
               if [ -n "$CONTENT" ]; then
                 ERROR_LOG="$CONTENT"
                 echo "Found errors in: $logpath"
@@ -146,8 +149,8 @@ jobs:
 
           # Gemini API 호출
           REQUEST_BODY=$(jq -n --arg log "$ERROR_LOG" '{
-            contents: [{ parts: [{ text: ("Unity WebGL 빌드 에러 로그를 분석해줘. 반드시 한국어로 답해줘. 포맷: [원인] 한두 줄 / [해결방법] 한두 줄. 간결하게 200자 이내로.\n\n로그:\n" + $log) }] }],
-            generationConfig: { maxOutputTokens: 500 }
+            contents: [{ parts: [{ text: ("너는 Unity 빌드 에러 분석 전문가야. 아래 GitHub Actions 빌드 로그를 분석해줘.\n\n규칙:\n- 반드시 한국어로 답변\n- 아래 포맷을 정확히 지켜줘\n- 각 항목 2~3줄, 총 400자 이내\n- 문장을 끝까지 완성해줘 (중간에 끊기지 않게)\n\n포맷:\n[원인] 에러의 직접적인 원인\n[해결방법] 구체적인 해결 단계\n\n로그:\n" + $log) }] }],
+            generationConfig: { maxOutputTokens: 1024 }
           }')
 
           RESPONSE=$(curl -s -w "\n%{http_code}" \
@@ -162,12 +165,21 @@ jobs:
             ERROR_MSG=$(echo "$BODY" | jq -r '.error.message // "알 수 없는 오류"')
             ANALYSIS="Gemini API 오류 (HTTP $HTTP_CODE): $ERROR_MSG"
           else
-            ANALYSIS=$(echo "$BODY" | jq -r '.candidates[0].content.parts[0].text // "AI 응답 파싱 실패"' | head -10)
+            ANALYSIS=$(echo "$BODY" | jq -r '.candidates[0].content.parts[0].text // "AI 응답 파싱 실패"' | head -15)
           fi
 
-          echo "analysis<<ANALYSIS_EOF" >> $GITHUB_OUTPUT
+          # Slack section 블록 3000자 제한 방지 (안전하게 2500자로 자르기)
+          if [ ${#ANALYSIS} -gt 2500 ]; then
+            ANALYSIS="${ANALYSIS:0:2500}..."
+          fi
+
+          echo "::group::Debug - Gemini analysis result"
+          echo "$ANALYSIS"
+          echo "::endgroup::"
+
+          echo "analysis<<EOF_GEMINI_7f3a" >> $GITHUB_OUTPUT
           echo "$ANALYSIS" >> $GITHUB_OUTPUT
-          echo "ANALYSIS_EOF" >> $GITHUB_OUTPUT
+          echo "EOF_GEMINI_7f3a" >> $GITHUB_OUTPUT
 
       # 6. 빌드 실패 시 → 슬랙 알림 (AI 분석 포함)
       - name: Slack Notification (Failure)
