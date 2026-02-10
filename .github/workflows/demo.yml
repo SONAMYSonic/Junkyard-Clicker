@@ -54,7 +54,46 @@ jobs:
           targetPlatform: WebGL
           buildProfile: "Assets/Settings/Build Profiles/Web-Desktop-Dev - Desktop - Development.asset"
 
-      # 4. 빌드 실패 시 → Gemini 분석
+      # 4. 빌드 실패 시 → Actions API에서 빌드 로그 직접 다운로드
+      - name: Capture Build Log from Actions API
+        if: steps.unity-build.outcome == 'failure'
+        id: capture-log
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "Fetching build job logs from Actions API..."
+
+          # 현재 run의 jobs 목록에서 build job ID 가져오기
+          JOB_ID=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs" \
+            | jq -r '.jobs[0].id')
+          echo "Job ID: $JOB_ID"
+
+          # 해당 job의 전체 로그 다운로드
+          curl -s -L -H "Authorization: Bearer $GH_TOKEN" \
+            "https://api.github.com/repos/${{ github.repository }}/actions/jobs/${JOB_ID}/logs" \
+            -o /tmp/build_full.log
+
+          FULL_LINES=$(wc -l < /tmp/build_full.log)
+          echo "Downloaded full log: ${FULL_LINES} lines"
+
+          # 에러 관련 라인 추출 (Unity 특화 패턴 + 일반 에러 패턴)
+          grep -i \
+            "error CS\|error:\|Fatal Error\|exception\|Build completed with a result of\|CommandInvokationFailure\|Shader error\|Unable to parse\|Failed to build\|out of memory\|disk space" \
+            /tmp/build_full.log | grep -v "::group::\|::endgroup::\|echo \"\|0 Error" | tail -50 > /tmp/build_errors.log || true
+
+          # 에러 라인이 없으면 마지막 100줄 사용
+          if [ ! -s /tmp/build_errors.log ]; then
+            echo "No specific error lines found, using last 100 lines"
+            tail -100 /tmp/build_full.log > /tmp/build_errors.log
+          fi
+
+          echo "::group::Debug - Captured error lines"
+          echo "Captured $(wc -l < /tmp/build_errors.log) error lines"
+          cat /tmp/build_errors.log | head -30
+          echo "::endgroup::"
+
+      # 5. 빌드 실패 시 → Gemini 분석
       - name: Analyze Failure with Gemini
         if: steps.unity-build.outcome == 'failure'
         id: gemini
@@ -64,57 +103,33 @@ jobs:
         run: |
           ERROR_LOG=""
 
-          # 실패한 스텝 정보 가져오기
-          JOBS_JSON=$(curl -s -H "Authorization: Bearer $GH_TOKEN" \
-            "https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }}/jobs")
-          FAILED_STEPS=$(echo "$JOBS_JSON" | jq -r '.jobs[0].steps[] | select(.conclusion == "failure") | "Step: \(.name) - Status: \(.conclusion)"')
-          echo "::group::Debug - Failed steps"
-          echo "$FAILED_STEPS"
-          echo "::endgroup::"
-
-          # Unity Editor.log 검색
-          echo "Searching for Unity Editor log..."
-          FOUND_LOGS=$(find /home/runner "$GITHUB_WORKSPACE" -maxdepth 8 \
-            \( -name "Editor.log" -o -name "Editor-prev.log" -o -name "EditorLog.log" \) \
-            -size +10k -not -path "*/_diag/*" 2>/dev/null || true)
-
-          echo "::group::Debug - All log files"
-          find /home/runner "$GITHUB_WORKSPACE" -maxdepth 6 -name "*.log" -size +10k \
-            -not -path "*/.git/*" -not -path "*/_diag/*" 2>/dev/null | while read f; do
-            echo "  $f ($(wc -l < "$f") lines)"
-          done
-          echo "::endgroup::"
-
-          # 찾은 Unity 로그에서 에러 추출
-          for logpath in $FOUND_LOGS; do
-            echo "Checking Unity log: $logpath ($(wc -l < "$logpath") lines)"
-            CONTENT=$(grep -i "error CS\|Build completed with a result of\|CommandInvokationFailure\|UnityException" "$logpath" | tail -40)
-            if [ -n "$CONTENT" ]; then
-              ERROR_LOG="$CONTENT"
-              echo "Found errors in: $logpath"
-              break
-            fi
-          done
-
-          # Unity 로그가 없으면 전체에서 큰 로그 파일 찾기 (_diag 제외)
-          if [ -z "$ERROR_LOG" ]; then
-            BIG_LOG=$(find /home/runner "$GITHUB_WORKSPACE" -maxdepth 6 -name "*.log" -size +50k \
-              -not -path "*/.git/*" -not -path "*/_diag/*" -not -name "Packages-Update*" \
-              2>/dev/null | head -1 || true)
-            if [ -n "$BIG_LOG" ]; then
-              echo "Using large log: $BIG_LOG"
-              CONTENT=$(grep -i "error CS\|Build completed with a result of\|CommandInvokationFailure\|UnityException" "$BIG_LOG" | tail -40)
-              if [ -n "$CONTENT" ]; then
-                ERROR_LOG="$CONTENT"
-              else
-                ERROR_LOG=$(tail -60 "$BIG_LOG")
-              fi
-            fi
+          # 1순위: Actions API에서 캡처한 로그 사용
+          if [ -f /tmp/build_errors.log ] && [ -s /tmp/build_errors.log ]; then
+            ERROR_LOG=$(cat /tmp/build_errors.log | tail -50)
+            echo "Using captured Actions API log ($(wc -l < /tmp/build_errors.log) lines)"
           fi
 
-          # 폴백: 실패 스텝 정보를 Gemini에 전달
+          # 2순위: 로컬 Unity Editor.log 검색 (폴백)
           if [ -z "$ERROR_LOG" ]; then
-            ERROR_LOG="Unity WebGL 빌드가 실패했습니다. 실패한 스텝: ${FAILED_STEPS:-Build WebGL}. game-ci/unity-builder@v4 사용. 빌드 프로파일: Web-Desktop-Dev. 로그 파일을 추출할 수 없어 상세 에러 메시지는 확인되지 않았습니다. 일반적인 Unity WebGL 빌드 실패 원인을 분석해주세요."
+            echo "Actions log empty, searching for local Unity Editor log..."
+            FOUND_LOGS=$(find /home/runner "$GITHUB_WORKSPACE" -maxdepth 8 \
+              \( -name "Editor.log" -o -name "Editor-prev.log" -o -name "EditorLog.log" \) \
+              -size +10k -not -path "*/_diag/*" 2>/dev/null || true)
+
+            for logpath in $FOUND_LOGS; do
+              echo "Checking Unity log: $logpath ($(wc -l < "$logpath") lines)"
+              CONTENT=$(grep -i "error CS\|Build completed with a result of\|CommandInvokationFailure\|UnityException\|Fatal Error\|Shader error" "$logpath" | tail -40)
+              if [ -n "$CONTENT" ]; then
+                ERROR_LOG="$CONTENT"
+                echo "Found errors in: $logpath"
+                break
+              fi
+            done
+          fi
+
+          # 3순위: 폴백 메시지
+          if [ -z "$ERROR_LOG" ]; then
+            ERROR_LOG="Unity WebGL 빌드가 실패했습니다. 실패한 스텝: Build WebGL. game-ci/unity-builder@v4 사용. 빌드 프로파일: Web-Desktop-Dev. 로그 파일을 추출할 수 없어 상세 에러 메시지는 확인되지 않았습니다. 일반적인 Unity WebGL 빌드 실패 원인을 분석해주세요."
           fi
 
           echo "::group::Debug - Error log sent to Gemini"
@@ -154,7 +169,7 @@ jobs:
           echo "$ANALYSIS" >> $GITHUB_OUTPUT
           echo "ANALYSIS_EOF" >> $GITHUB_OUTPUT
 
-      # 5. 빌드 실패 시 → 슬랙 알림 (AI 분석 포함)
+      # 6. 빌드 실패 시 → 슬랙 알림 (AI 분석 포함)
       - name: Slack Notification (Failure)
         if: steps.unity-build.outcome == 'failure'
         env:
@@ -195,33 +210,33 @@ jobs:
               ]
             }' | curl -s -X POST -H "Content-Type: application/json" -d @- "$SLACK_WEBHOOK"
 
-      # 6. 빌드 실패 시 워크플로우 중단
+      # 7. 빌드 실패 시 워크플로우 중단
       - name: Fail workflow if build failed
         if: steps.unity-build.outcome == 'failure'
         run: exit 1
 
-      # 7. 빌드 결과물 업로드 (Artifact)
+      # 8. 빌드 결과물 업로드 (Artifact)
       - name: Upload Build
         uses: actions/upload-artifact@v4
         with:
           name: WebGL-Build
           path: build/WebGL
 
-      # 8. GitHub Pages 배포 준비
+      # 9. GitHub Pages 배포 준비
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
-      # 9. Pages용 Artifact 업로드
+      # 10. Pages용 Artifact 업로드
       - name: Upload Pages Artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: build/WebGL/WebGL
 
-      # 10. GitHub Pages 배포
+      # 11. GitHub Pages 배포
       - name: Deploy to GitHub Pages
         uses: actions/deploy-pages@v4
 
-      # 11. 슬랙 알림 (성공)
+      # 12. 슬랙 알림 (성공)
       - name: Slack Notification (Success)
         if: success()
         env:
