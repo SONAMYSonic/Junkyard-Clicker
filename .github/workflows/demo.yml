@@ -72,37 +72,33 @@ jobs:
           echo "$FAILED_STEPS"
           echo "::endgroup::"
 
-          # Unity 로그 파일 검색
-          echo "Searching for Unity logs..."
-          for logpath in \
-            "$GITHUB_WORKSPACE/unity-build.log" \
-            "$GITHUB_WORKSPACE/build/WebGL/build.log" \
-            "$HOME/.config/unity3d/Editor.log" \
-            "$GITHUB_WORKSPACE/Library/EditorLog.log"; do
-            if [ -f "$logpath" ] && [ -s "$logpath" ]; then
-              echo "Reading: $logpath"
-              CONTENT=$(grep -A 3 -B 1 -i "error\|fatal\|exception\|Error CS" "$logpath" | tail -80)
-              if [ -z "$CONTENT" ]; then
-                CONTENT=$(tail -50 "$logpath")
-              fi
-              if [ -n "$CONTENT" ]; then
-                ERROR_LOG="$CONTENT"
-                break
-              fi
+          # Unity Editor.log 검색 (game-ci는 _diag/pages/ 하위에 로그 저장)
+          echo "Searching for Unity Editor log..."
+          FOUND_LOGS=$(find /home/runner "$GITHUB_WORKSPACE" -maxdepth 8 \
+            \( -name "Editor.log" -o -name "Editor-prev.log" \) \
+            -size +10k 2>/dev/null || true)
+
+          # Editor.log가 없으면 _diag/pages 안의 가장 큰 로그 파일 찾기
+          if [ -z "$FOUND_LOGS" ]; then
+            FOUND_LOGS=$(find /home/runner -path "*/_diag/pages/*.log" -size +100k 2>/dev/null | head -3 || true)
+          fi
+
+          # 찾은 로그 중 에러가 포함된 것을 사용
+          for logpath in $FOUND_LOGS; do
+            echo "Checking: $logpath ($(wc -l < "$logpath") lines)"
+            CONTENT=$(grep -i "error CS\|Build completed with a result of 'Failed'\|Assets/.*error\|CommandInvokationFailure\|Fatal\|UnityException" "$logpath" | tail -40)
+            if [ -n "$CONTENT" ]; then
+              ERROR_LOG="$CONTENT"
+              echo "Found errors in: $logpath"
+              break
             fi
           done
 
-          # find로 추가 탐색
-          if [ -z "$ERROR_LOG" ]; then
-            LOG_FILE=$(find "$GITHUB_WORKSPACE" /home/runner -maxdepth 5 -name "*.log" -size +1k \
-              -not -path "*/.git/*" -not -name "Packages-Update*" 2>/dev/null | head -1)
-            if [ -n "$LOG_FILE" ]; then
-              echo "Found: $LOG_FILE"
-              ERROR_LOG=$(grep -A 3 -B 1 -i "error\|fatal\|exception" "$LOG_FILE" | tail -80)
-              if [ -z "$ERROR_LOG" ]; then
-                ERROR_LOG=$(tail -50 "$LOG_FILE")
-              fi
-            fi
+          # 에러 키워드가 없으면 가장 큰 로그의 마지막 부분 사용
+          if [ -z "$ERROR_LOG" ] && [ -n "$FOUND_LOGS" ]; then
+            BIGGEST=$(echo "$FOUND_LOGS" | head -1)
+            echo "No error keywords found, using tail of: $BIGGEST"
+            ERROR_LOG=$(tail -60 "$BIGGEST")
           fi
 
           # 폴백: 실패 스텝 정보를 Gemini에 전달
@@ -125,7 +121,7 @@ jobs:
           # Gemini API 호출
           REQUEST_BODY=$(jq -n --arg log "$ERROR_LOG" '{
             contents: [{ parts: [{ text: ("Unity WebGL 빌드 에러 로그를 분석해줘. 반드시 한국어로 답해줘. 포맷: [원인] 한두 줄 / [해결방법] 한두 줄. 간결하게 200자 이내로.\n\n로그:\n" + $log) }] }],
-            generationConfig: { maxOutputTokens: 300 }
+            generationConfig: { maxOutputTokens: 500 }
           }')
 
           RESPONSE=$(curl -s -w "\n%{http_code}" \
