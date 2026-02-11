@@ -5,6 +5,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using DG.Tweening;
 
 public class CarRepairShopFinder : MonoBehaviour
 {
@@ -19,6 +20,9 @@ public class CarRepairShopFinder : MonoBehaviour
     [SerializeField] private Transform listContent;   // ScrollView > Viewport > Content
     [SerializeField] private GameObject shopItemPrefab; // 목록 아이템 프리팹
     [SerializeField] private GameObject detailPanel;    // 상세 정보 패널
+    private CanvasGroup detailCanvasGroup;              // DOTween fade용
+    private RectTransform detailRect;                   // DOTween scale용
+    private Image dimPanel;                             // 배경 딤 패널
 
     [Header("상세 패널 내부")]
     [SerializeField] private TMP_Text detailName;
@@ -99,8 +103,20 @@ public class CarRepairShopFinder : MonoBehaviour
             SearchByMyLocation().Forget();
         });
 
+        // DOTween용 컴포넌트 초기화
+        detailRect = detailPanel.GetComponent<RectTransform>();
+        detailCanvasGroup = detailPanel.GetComponent<CanvasGroup>();
+        if (detailCanvasGroup == null)
+            detailCanvasGroup = detailPanel.AddComponent<CanvasGroup>();
+
+        // 배경 딤 패널 생성 (DetailPanel 바로 앞에 위치)
+        CreateDimPanel();
+
         detailPanel.SetActive(false);
-        detailCloseBtn.onClick.AddListener(() => detailPanel.SetActive(false));
+        detailRect.localScale = Vector3.zero;
+        detailCanvasGroup.alpha = 0f;
+
+        detailCloseBtn.onClick.AddListener(() => HideDetail());
 
         // 시작 시 랜덤 지역으로 20개 로딩
         LoadRandomShops().Forget();
@@ -307,9 +323,50 @@ public class CarRepairShopFinder : MonoBehaviour
         LayoutRebuilder.ForceRebuildLayoutImmediate(listContent as RectTransform);
     }
 
+    private void CreateDimPanel()
+    {
+        GameObject dimObj = new GameObject("DimPanel");
+        dimObj.transform.SetParent(detailPanel.transform.parent, false);
+
+        // DetailPanel 바로 앞(아래)에 배치
+        dimObj.transform.SetSiblingIndex(detailPanel.transform.GetSiblingIndex());
+
+        // 화면 전체를 덮도록 RectTransform 설정
+        RectTransform dimRect = dimObj.AddComponent<RectTransform>();
+        dimRect.anchorMin = Vector2.zero;
+        dimRect.anchorMax = Vector2.one;
+        dimRect.offsetMin = Vector2.zero;
+        dimRect.offsetMax = Vector2.zero;
+
+        // 반투명 검정 Image
+        dimPanel = dimObj.AddComponent<Image>();
+        dimPanel.color = new Color(0f, 0f, 0f, 0f);
+        dimPanel.raycastTarget = true; // 뒤쪽 터치 차단
+
+        dimObj.SetActive(false);
+    }
+
     private void ShowDetail(RepairShop shop)
     {
+        // 이전 트윈 정리
+        DOTween.Kill(detailRect);
+        DOTween.Kill(detailCanvasGroup);
+        DOTween.Kill(dimPanel);
+
+        // 딤 패널 활성화 + 페이드 인
+        dimPanel.gameObject.SetActive(true);
+        dimPanel.color = new Color(0f, 0f, 0f, 0f);
+        dimPanel.DOColor(new Color(0f, 0f, 0f, 0.6f), 0.3f).SetUpdate(true);
+
+        // 패널 활성화 + 초기 상태 (작고 투명)
         detailPanel.SetActive(true);
+        detailRect.localScale = Vector3.zero;
+        detailCanvasGroup.alpha = 0f;
+
+        // 띠용! 열기 애니메이션
+        detailRect.DOScale(Vector3.one, 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
+        detailCanvasGroup.DOFade(1f, 0.2f).SetUpdate(true);
+
         detailName.text = shop.Name;
         detailAddress.text = $"주소 : {shop.Address}";
         detailTel.text = $"전화 : {shop.Tel}";
@@ -333,6 +390,23 @@ public class CarRepairShopFinder : MonoBehaviour
                 Application.OpenURL(mapUrl);
             });
         }
+    }
+
+    private void HideDetail()
+    {
+        // 이전 트윈 정리
+        DOTween.Kill(detailRect);
+        DOTween.Kill(detailCanvasGroup);
+        DOTween.Kill(dimPanel);
+
+        // 딤 패널 페이드 아웃
+        dimPanel.DOColor(new Color(0f, 0f, 0f, 0f), 0.25f).SetUpdate(true)
+            .OnComplete(() => dimPanel.gameObject.SetActive(false));
+
+        // 띠용! 닫기 애니메이션
+        detailRect.DOScale(Vector3.zero, 0.25f).SetEase(Ease.InBack).SetUpdate(true);
+        detailCanvasGroup.DOFade(0f, 0.2f).SetUpdate(true)
+            .OnComplete(() => detailPanel.SetActive(false));
     }
 
     private async UniTaskVoid LoadMapImage(double lon, double lat, string shopName)

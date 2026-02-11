@@ -13,7 +13,9 @@
       "Bash(gh auth status:*)",
       "WebFetch(domain:openapi.gg.go.kr)",
       "mcp__unityMCP__manage_gameobject",
-      "WebFetch(domain:api.ncloud-docs.com)"
+      "WebFetch(domain:api.ncloud-docs.com)",
+      "Bash(if exist \"%LOCALAPPDATA%\\\\Unity\\\\cache\\\\upm\" echo UPM cache exists at: %LOCALAPPDATA%Unitycacheupm)",
+      "Bash(powershell -Command:*)"
     ]
   }
 }
