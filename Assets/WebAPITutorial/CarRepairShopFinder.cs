@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 public class CarRepairShopFinder : MonoBehaviour
 {
@@ -11,7 +12,34 @@ public class CarRepairShopFinder : MonoBehaviour
     private const string API_KEY = "602f9b6fbe2b4eb49bdb587bea6caab6";
     private const string BASE_URL = "https://openapi.gg.go.kr/Carimprventrpsinfo";
 
-    [SerializeField] private TMP_InputField inputField; // 시/군 이름 입력용
+    [Header("UI 참조")]
+    [SerializeField] private TMP_InputField inputField;
+    [SerializeField] private Button searchButton;       // 검색 버튼
+    [SerializeField] private Button locationButton;    // 내 위치 버튼
+    [SerializeField] private Transform listContent;   // ScrollView > Viewport > Content
+    [SerializeField] private GameObject shopItemPrefab; // 목록 아이템 프리팹
+    [SerializeField] private GameObject detailPanel;    // 상세 정보 패널
+
+    [Header("상세 패널 내부")]
+    [SerializeField] private TMP_Text detailName;
+    [SerializeField] private TMP_Text detailAddress;
+    [SerializeField] private TMP_Text detailTel;
+    [SerializeField] private TMP_Text detailKind;
+    [SerializeField] private TMP_Text detailState;
+    [SerializeField] private TMP_Text detailDistance;
+    [SerializeField] private TMP_Text detailRegDate;
+    [SerializeField] private TMP_Text detailArea;
+    [SerializeField] private TMP_Text detailTime;
+    [SerializeField] private Button detailCloseBtn;
+
+    [Header("네이버 지도")]
+    [SerializeField] private RawImage mapImage;           // 지도 이미지 표시
+    [SerializeField] private Button openMapButton;        // "네이버 지도에서 보기" 버튼
+
+    // 네이버 Static Map API
+    private const string NAVER_MAP_CLIENT_ID = "3h38irmf53";
+    private const string NAVER_MAP_CLIENT_SECRET = "j4K8yGOU9H8hwYX2nePeqMhKJ04ZoJkSvMxpw8or";
+    private const string NAVER_STATIC_MAP_URL = "https://maps.apigw.ntruss.com/map-static/v2/raster";
 
     // 시/군 이름 → 대략적 좌표 매핑 (주요 지역)
     private Dictionary<string, (double lat, double lon)> sigunCoords = new Dictionary<string, (double, double)>
@@ -46,86 +74,350 @@ public class CarRepairShopFinder : MonoBehaviour
         { "과천시", (37.4292, 126.9876) },
     };
 
-    private async void Start()
+    // 검색 결과 캐싱 (상세 정보 표시용)
+    private List<RepairShop> cachedShops = new List<RepairShop>();
+
+    private void Start()
     {
-        // InputField에 엔터 입력 시 검색 실행
-        inputField.onEndEdit.AddListener((text) =>
+        Debug.Log($"[CarRepairShopFinder] Start() 호출됨. inputField={inputField}, listContent={listContent}, shopItemPrefab={shopItemPrefab}, detailPanel={detailPanel}");
+
+        inputField.onSubmit.AddListener((text) =>
         {
-            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
-            {
-                SearchRepairShops(text).Forget();
-            }
+            Debug.Log($"[CarRepairShopFinder] onSubmit 호출됨: '{text}'");
+            SearchRepairShops(text).Forget();
         });
+
+        searchButton.onClick.AddListener(() =>
+        {
+            Debug.Log($"[CarRepairShopFinder] 검색 버튼 클릭: '{inputField.text}'");
+            SearchRepairShops(inputField.text).Forget();
+        });
+
+        locationButton.onClick.AddListener(() =>
+        {
+            Debug.Log("[CarRepairShopFinder] 내 위치 버튼 클릭");
+            SearchByMyLocation().Forget();
+        });
+
+        detailPanel.SetActive(false);
+        detailCloseBtn.onClick.AddListener(() => detailPanel.SetActive(false));
+
+        // 시작 시 랜덤 지역으로 20개 로딩
+        LoadRandomShops().Forget();
     }
 
-    /// <summary>
-    /// 입력받은 시/군 이름으로 근처 정비업체 상위 10개 검색
-    /// </summary>
+    private async UniTaskVoid LoadRandomShops()
+    {
+        // 딕셔너리에서 랜덤 시/군 선택
+        var keys = new List<string>(sigunCoords.Keys);
+        string randomSigun = keys[UnityEngine.Random.Range(0, keys.Count)];
+        var (userLat, userLon) = sigunCoords[randomSigun];
+
+        string url = $"{BASE_URL}?KEY={API_KEY}&Type=json&pIndex=1&pSize=200&SIGUN_NM={UnityWebRequest.EscapeURL(randomSigun)}";
+        string result = await GetWebText(url);
+
+        if (string.IsNullOrEmpty(result) || result.TrimStart().StartsWith("<"))
+        {
+            Debug.LogWarning($"[초기 로딩] API 오류: {result}");
+            return;
+        }
+
+        List<RepairShop> shops = ParseRepairShops(result);
+        foreach (var shop in shops)
+            shop.Distance = GetDistance(userLat, userLon, shop.Lat, shop.Lon);
+
+        // 랜덤 셔플
+        for (int i = shops.Count - 1; i > 0; i--)
+        {
+            int j = UnityEngine.Random.Range(0, i + 1);
+            (shops[i], shops[j]) = (shops[j], shops[i]);
+        }
+
+        int count = Mathf.Min(20, shops.Count);
+        cachedShops = shops.GetRange(0, count);
+        DisplayShopList(cachedShops);
+        Debug.Log($"[초기 로딩] {randomSigun} 정비업체 {count}개 랜덤 표시");
+    }
+
+    private async UniTaskVoid SearchByMyLocation()
+    {
+        double userLat, userLon;
+
+#if UNITY_EDITOR
+        // 에디터 테스트용 임시 좌표 (수원역 부근)
+        userLat = 37.2660;
+        userLon = 127.0001;
+        Debug.Log($"[위치] 에디터 테스트 좌표 사용: ({userLat}, {userLon})");
+#else
+        // 모바일: 실제 GPS 사용
+        if (!Input.location.isEnabledByUser)
+        {
+            Debug.LogWarning("[위치] 위치 서비스가 비활성화되어 있습니다.");
+            return;
+        }
+
+        Input.location.Start(10f, 5f);
+
+        int timeout = 20;
+        while (Input.location.status == LocationServiceStatus.Initializing && timeout > 0)
+        {
+            await UniTask.Delay(1000);
+            timeout--;
+        }
+
+        if (Input.location.status != LocationServiceStatus.Running)
+        {
+            Debug.LogWarning($"[위치] 위치 서비스 실패: {Input.location.status}");
+            Input.location.Stop();
+            return;
+        }
+
+        userLat = Input.location.lastData.latitude;
+        userLon = Input.location.lastData.longitude;
+        Debug.Log($"[위치] GPS 좌표: ({userLat}, {userLon})");
+        Input.location.Stop();
+#endif
+
+        // 가장 가까운 시/군 찾기
+        string closestSigun = null;
+        double closestDist = double.MaxValue;
+        foreach (var kv in sigunCoords)
+        {
+            double dist = GetDistance(userLat, userLon, kv.Value.lat, kv.Value.lon);
+            if (dist < closestDist)
+            {
+                closestDist = dist;
+                closestSigun = kv.Key;
+            }
+        }
+
+        if (closestSigun == null) return;
+        Debug.Log($"[위치] 가장 가까운 지역: {closestSigun} ({closestDist:F1}km)");
+
+        // 해당 지역 API 호출 후 내 GPS 좌표 기준 거리순 정렬
+        string url = $"{BASE_URL}?KEY={API_KEY}&Type=json&pIndex=1&pSize=200&SIGUN_NM={UnityWebRequest.EscapeURL(closestSigun)}";
+        string result = await GetWebText(url);
+
+        if (string.IsNullOrEmpty(result) || result.TrimStart().StartsWith("<"))
+        {
+            Debug.LogError($"API 오류 응답: {result}");
+            return;
+        }
+
+        List<RepairShop> shops = ParseRepairShops(result);
+        foreach (var shop in shops)
+            shop.Distance = GetDistance(userLat, userLon, shop.Lat, shop.Lon);
+
+        shops.Sort((a, b) => a.Distance.CompareTo(b.Distance));
+
+        int count = Mathf.Min(10, shops.Count);
+        cachedShops = shops.GetRange(0, count);
+        DisplayShopList(cachedShops);
+
+        inputField.text = $"{closestSigun} (내 위치)";
+        Debug.Log($"[위치] {closestSigun} 근처 정비업체 {count}개 표시 완료");
+    }
+
     private async UniTaskVoid SearchRepairShops(string sigunName)
     {
         sigunName = sigunName.Trim();
 
-        // 1. 입력한 시/군의 좌표 가져오기
         if (!sigunCoords.ContainsKey(sigunName))
         {
-            Debug.LogWarning($"'{sigunName}' 좌표 정보가 없습니다. 등록된 시/군 이름을 입력해주세요.");
+            Debug.LogWarning($"'{sigunName}' 좌표 정보가 없습니다.");
             return;
         }
 
         var (userLat, userLon) = sigunCoords[sigunName];
-        Debug.Log($"검색 기준 위치: {sigunName} (위도: {userLat}, 경도: {userLon})");
 
-        // 2. API에서 해당 시/군의 정비업체 목록 가져오기 (최대 200개)
         string url = $"{BASE_URL}?KEY={API_KEY}&Type=json&pIndex=1&pSize=200&SIGUN_NM={UnityWebRequest.EscapeURL(sigunName)}";
         string result = await GetWebText(url);
 
-        if (string.IsNullOrEmpty(result))
+        if (string.IsNullOrEmpty(result) || result.TrimStart().StartsWith("<"))
         {
-            Debug.LogError("API 응답이 비어있습니다.");
+            Debug.LogError($"API 오류 응답: {result}");
             return;
         }
 
-        // 3. JSON 파싱 → RepairShop 리스트 생성
         List<RepairShop> shops = ParseRepairShops(result);
-        Debug.Log($"총 {shops.Count}개 정비업체를 가져왔습니다.");
 
-        // 4. 거리 계산 후 가까운 순으로 정렬
         foreach (var shop in shops)
         {
             shop.Distance = GetDistance(userLat, userLon, shop.Lat, shop.Lon);
         }
         shops.Sort((a, b) => a.Distance.CompareTo(b.Distance));
 
-        // 5. 상위 10개 출력
         int count = Mathf.Min(10, shops.Count);
-        Debug.Log($"\n===== {sigunName} 근처 정비업체 TOP {count} =====");
-        for (int i = 0; i < count; i++)
+        cachedShops = shops.GetRange(0, count);
+        DisplayShopList(cachedShops);
+        Debug.Log($"{sigunName} 근처 정비업체 {count}개 표시 완료");
+    }
+
+    private void DisplayShopList(List<RepairShop> shops)
+    {
+        // 기존 목록 클리어 (프리팹 템플릿은 보존)
+        for (int c = listContent.childCount - 1; c >= 0; c--)
+        {
+            var child = listContent.GetChild(c).gameObject;
+            if (child == shopItemPrefab) continue;
+            Destroy(child);
+        }
+
+        for (int i = 0; i < shops.Count; i++)
         {
             var shop = shops[i];
-            Debug.Log($"{i + 1}. {shop.Name} | {shop.Distance:F1}km | {shop.Address} | {shop.Tel}");
+            GameObject item = Instantiate(shopItemPrefab, listContent);
+            item.SetActive(true);
+
+            // LayoutElement 확인 및 보정
+            var le = item.GetComponent<LayoutElement>();
+            if (le != null)
+            {
+                le.preferredHeight = 180;
+                le.minHeight = 180;
+            }
+
+            // RectTransform 크기 보정
+            RectTransform itemRT = item.GetComponent<RectTransform>();
+            if (itemRT != null)
+            {
+                itemRT.anchorMin = new Vector2(0, 0);
+                itemRT.anchorMax = new Vector2(1, 1);
+                itemRT.sizeDelta = new Vector2(0, 180);
+            }
+
+            TMP_Text[] texts = item.GetComponentsInChildren<TMP_Text>(true);
+            if (texts.Length >= 3)
+            {
+                texts[0].text = $"{i + 1}. {shop.Name}";
+                texts[1].text = shop.Address;
+                texts[2].text = $"{shop.Tel}  |  {shop.Distance:F1}km";
+            }
+
+            int index = i;
+            Button btn = item.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.AddListener(() => ShowDetail(cachedShops[index]));
+            }
+        }
+
+        // 레이아웃 강제 갱신
+        Canvas.ForceUpdateCanvases();
+        LayoutRebuilder.ForceRebuildLayoutImmediate(listContent as RectTransform);
+    }
+
+    private void ShowDetail(RepairShop shop)
+    {
+        detailPanel.SetActive(true);
+        detailName.text = shop.Name;
+        detailAddress.text = $"주소 : {shop.Address}";
+        detailTel.text = $"전화 : {shop.Tel}";
+        detailKind.text = $"업종 : {shop.Kind}";
+        detailState.text = $"상태 : {shop.State}";
+        detailDistance.text = $"거리 : {shop.Distance:F2} km";
+        detailRegDate.text = $"등록일 : {shop.RegDate}";
+        detailArea.text = $"면적 : {shop.Area}";
+        detailTime.text = $"운영시간 : {shop.OpenTime} ~ {shop.CloseTime}";
+
+        // 네이버 Static Map 로드
+        LoadMapImage(shop.Lon, shop.Lat, shop.Name).Forget();
+
+        // "네이버 지도에서 보기" 버튼 연결
+        if (openMapButton != null)
+        {
+            openMapButton.onClick.RemoveAllListeners();
+            openMapButton.onClick.AddListener(() =>
+            {
+                string mapUrl = $"https://map.naver.com/p/search/{UnityWebRequest.EscapeURL(shop.Address)}";
+                Application.OpenURL(mapUrl);
+            });
         }
     }
 
-    /// <summary>
-    /// API JSON 응답을 파싱하여 RepairShop 리스트로 변환
-    /// </summary>
+    private async UniTaskVoid LoadMapImage(double lon, double lat, string shopName)
+    {
+        if (mapImage == null) return;
+
+        // 로딩 중 표시 (회색)
+        mapImage.color = new Color(0.85f, 0.85f, 0.85f, 1f);
+
+        // 네이버 Static Map API 호출
+        // center=경도,위도 (lon,lat 순서!)
+        // markers=type:d|size:mid|pos:경도 위도
+        string url = $"{NAVER_STATIC_MAP_URL}?w=800&h=400&center={lon},{lat}&level=16" +
+                     $"&markers=type:d|size:mid|pos:{lon} {lat}" +
+                     $"&scale=2&format=png";
+
+        Debug.Log($"[지도] Static Map 요청: {url}");
+
+        var req = UnityWebRequest.Get(url);
+        req.SetRequestHeader("X-NCP-APIGW-API-KEY-ID", NAVER_MAP_CLIENT_ID);
+        req.SetRequestHeader("X-NCP-APIGW-API-KEY", NAVER_MAP_CLIENT_SECRET);
+        req.downloadHandler = new DownloadHandlerBuffer();
+
+        try
+        {
+            // UniTask가 HTTP 에러를 예외로 던지지 않도록 직접 처리
+            var op = req.SendWebRequest();
+            while (!op.isDone) await UniTask.Yield();
+
+            Debug.Log($"[지도] 응답 코드: {req.responseCode}, result: {req.result}");
+
+            if (req.result == UnityWebRequest.Result.Success)
+            {
+                byte[] imageData = req.downloadHandler.data;
+                Texture2D tex = new Texture2D(2, 2);
+                if (tex.LoadImage(imageData))
+                {
+                    mapImage.texture = tex;
+                    mapImage.color = Color.white;
+
+                    // 이미지 비율에 맞춰 LayoutElement 높이 자동 조정
+                    var layoutElem = mapImage.GetComponent<LayoutElement>();
+                    if (layoutElem != null && tex.width > 0)
+                    {
+                        float parentWidth = mapImage.rectTransform.rect.width;
+                        if (parentWidth <= 0)
+                            parentWidth = ((RectTransform)mapImage.transform.parent).rect.width - 50f;
+                        float ratio = (float)tex.height / tex.width;
+                        layoutElem.preferredHeight = parentWidth * ratio;
+                        layoutElem.minHeight = parentWidth * ratio;
+                    }
+
+                    Debug.Log($"[지도] '{shopName}' 지도 로드 완료 ({tex.width}x{tex.height})");
+                }
+                else
+                {
+                    Debug.LogWarning("[지도] 이미지 파싱 실패");
+                }
+            }
+            else
+            {
+                string responseText = "";
+                if (req.downloadHandler?.data != null)
+                    responseText = System.Text.Encoding.UTF8.GetString(req.downloadHandler.data);
+                Debug.LogWarning($"[지도] 실패: HTTP {req.responseCode} | {req.error}\n응답본문: {responseText}");
+                mapImage.texture = null;
+                mapImage.color = new Color(0.9f, 0.9f, 0.9f, 1f);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogWarning($"[지도] 예외: {e.Message}\nStackTrace: {e.StackTrace}");
+        }
+    }
+
     private List<RepairShop> ParseRepairShops(string json)
     {
         List<RepairShop> shops = new List<RepairShop>();
-
-        // Unity JsonUtility는 최상위 배열/중첩 구조 파싱이 어려우므로 간단한 수동 파싱
-        // "row" 배열에서 각 업체 정보 추출
         var wrapper = JsonUtility.FromJson<ApiResponse>(FixJson(json));
-
         if (wrapper == null || wrapper.row == null) return shops;
 
         foreach (var row in wrapper.row)
         {
-            // 좌표가 없는 업체는 거리 계산 불가 → 건너뛰기
             if (string.IsNullOrEmpty(row.REFINE_WGS84_LAT) || string.IsNullOrEmpty(row.REFINE_WGS84_LOGT))
                 continue;
-
-            // 폐업한 업체 건너뛰기 (BSN_STATE_NM이 "1"이면 영업중)
             if (!string.IsNullOrEmpty(row.CLSBIZ_DE))
                 continue;
 
@@ -136,90 +428,98 @@ public class CarRepairShopFinder : MonoBehaviour
             {
                 Name = row.FACLT_NM ?? "이름없음",
                 Address = row.REFINE_ROADNM_ADDR ?? row.REFINE_LOTNO_ADDR ?? "주소없음",
-                Tel = row.MNGINST_TELNO ?? "전화없음",
+                Tel = row.TELNO ?? row.MNGINST_TELNO ?? "전화없음",
+                Kind = row.FACLT_KIND_NM ?? "-",
+                State = row.BSN_STATE_NM == "1" ? "영업중" : row.BSN_STATE_NM ?? "-",
+                RegDate = row.REGIST_DE ?? "-",
+                Area = row.AR > 0 ? $"{row.AR} m²" : "-",
+                OpenTime = FormatTime(row.BSN_BGNG_TM),
+                CloseTime = FormatTime(row.BSN_END_TM),
                 Lat = lat,
                 Lon = lon
             });
         }
-
         return shops;
     }
 
-    /// <summary>
-    /// API 응답 JSON에서 row 배열만 추출하여 JsonUtility가 파싱 가능하도록 변환
-    /// </summary>
     private string FixJson(string json)
     {
-        // 원본 구조: {"Carimprventrpsinfo":[{"head":[...]},{"row":[...]}]}
-        // JsonUtility용 구조: {"row":[...]}
         int rowStart = json.IndexOf("\"row\":");
         if (rowStart < 0) return "{\"row\":[]}";
-
         int arrayStart = json.IndexOf('[', rowStart);
         int depth = 0;
         int arrayEnd = arrayStart;
-
         for (int i = arrayStart; i < json.Length; i++)
         {
             if (json[i] == '[') depth++;
             else if (json[i] == ']') depth--;
-
-            if (depth == 0)
-            {
-                arrayEnd = i;
-                break;
-            }
+            if (depth == 0) { arrayEnd = i; break; }
         }
-
         string rowArray = json.Substring(arrayStart, arrayEnd - arrayStart + 1);
         return "{\"row\":" + rowArray + "}";
     }
 
-    /// <summary>
-    /// 두 좌표 사이의 거리를 km 단위로 계산 (Haversine 공식)
-    /// </summary>
+    private string FormatTime(string raw)
+    {
+        if (string.IsNullOrEmpty(raw)) return "없음";
+        raw = raw.Trim();
+        // "0900" → "09:00", "1800" → "18:00"
+        if (raw.Length == 4 && int.TryParse(raw, out _))
+            return $"{raw.Substring(0, 2)}:{raw.Substring(2, 2)}";
+        // "09:00" 이미 포맷된 경우
+        if (raw.Contains(":")) return raw;
+        return raw;
+    }
+
     private double GetDistance(double lat1, double lon1, double lat2, double lon2)
     {
-        const double R = 6371.0; // 지구 반지름 (km)
+        const double R = 6371.0;
         double dLat = (lat2 - lat1) * Math.PI / 180.0;
         double dLon = (lon2 - lon1) * Math.PI / 180.0;
-
         double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
                    + Math.Cos(lat1 * Math.PI / 180.0) * Math.Cos(lat2 * Math.PI / 180.0)
                    * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
-
         double c = 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         return R * c;
     }
 
     private async UniTask<string> GetWebText(string url)
     {
-        var txt = (await UnityWebRequest.Get(url).SendWebRequest()).downloadHandler.text;
+        var req = UnityWebRequest.Get(url);
+        req.SetRequestHeader("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+        var request = await req.SendWebRequest();
+        byte[] rawData = request.downloadHandler.data;
+        string txt = System.Text.Encoding.UTF8.GetString(rawData);
+        if (txt.TrimStart().StartsWith("<"))
+        {
+            txt = System.Text.Encoding.GetEncoding("euc-kr").GetString(rawData);
+        }
         return txt;
     }
 }
 
 // === 도메인 클래스 ===
-
-/// <summary>
-/// 정비업체 정보 (거리 포함)
-/// </summary>
 public class RepairShop
 {
     public string Name;
     public string Address;
     public string Tel;
+    public string Kind;     // 업체 종류
+    public string State;    // 영업 상태
+    public string RegDate;  // 등록일
+    public string Area;     // 면적
+    public string OpenTime;  // 운영시작시각
+    public string CloseTime; // 운영종료시각
     public double Lat;
     public double Lon;
-    public double Distance; // km 단위
+    public double Distance;
 }
 
 // === JSON 파싱용 클래스 ===
-
 [Serializable]
 public class ApiResponse
 {
-    public List<ApiRow> row;
+    public ApiRow[] row;
 }
 
 [Serializable]
@@ -227,9 +527,15 @@ public class ApiRow
 {
     public string SIGUN_NM;
     public string FACLT_NM;
+    public string FACLT_KIND_NM;
     public string BSN_STATE_NM;
     public string CLSBIZ_DE;
+    public string REGIST_DE;
+    public float AR;
+    public string TELNO;
     public string MNGINST_TELNO;
+    public string BSN_BGNG_TM;   // 운영시작시각
+    public string BSN_END_TM;    // 운영종료시각
     public string REFINE_LOTNO_ADDR;
     public string REFINE_ROADNM_ADDR;
     public string REFINE_WGS84_LAT;

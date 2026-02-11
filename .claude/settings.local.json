@@ -11,7 +11,9 @@
       "Bash(curl:*)",
       "Bash(python3:*)",
       "Bash(gh auth status:*)",
-      "WebFetch(domain:openapi.gg.go.kr)"
+      "WebFetch(domain:openapi.gg.go.kr)",
+      "mcp__unityMCP__manage_gameobject",
+      "WebFetch(domain:api.ncloud-docs.com)"
     ]
   }
 }
